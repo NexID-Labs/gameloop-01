@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spyfall Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
+        crossorigin="anonymous">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <link href="custom/custom.css" rel="stylesheet" type="text/css">
+    <script src="custom/lang.js"></script>
+</head>
+
+<body>
+      <script>
+   document.addEventListener("DOMContentLoaded", function () {
+ const backgrounds=[ "gallary/picture/1.PNG",
+    "gallary/picture/2.PNG",
+    "gallary/picture/3.PNG",
+    "gallary/picture/4.PNG",
+    "gallary/picture/5.PNG",
+    "gallary/picture/6.PNG",
+    "gallary/picture/7.PNG",
+    "gallary/picture/8.PNG",
+    "gallary/picture/9.PNG",
+    "gallary/picture/10.PNG",
+    "gallary/picture/11.PNG",
+    "gallary/picture/12.PNG",
+    "gallary/picture/13.PNG",
+    "gallary/picture/14.PNG",
+    "gallary/picture/15.PNG",
+    "gallary/picture/16.PNG",
+    "gallary/picture/17.PNG",
+    "gallary/picture/18.PNG"
+    ];
+
+
+    const selectedBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+
+    document.body.style.backgroundImage = `url('${selectedBg}')`;
+  });
+  </script>
+    <style>
+     body {
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  transition: background-image 1s ease-in-out;
+}
+    /* Ad Banner Styles */
+    .ad-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /*box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);*/
+    }
+
+    .ad-content {
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .ad-text {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    @media (max-width: 768px) {
+      .ad-banner {
+        height: 50px;
+      }
+
+      .ad-content {
+        font-size: 14px;
+      }
+    }
+
+    /* Adjust body padding for ad banner */
+    body {
+      padding-top: 70px;
+    }
+
+    /* Optional ad banner */
+    .ad-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /*box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);*/
+      font-weight: bold;
+    }
+    </style>
+
+    <!-- Language Switcher -->
+    <div id="langSwitcherContainer" style="position: fixed; top: 10px; right: 20px; z-index: 2000; display: flex; align-items: center; gap: 8px; ">
+      <span id="langSwitcherLabel" style="box-shadow: -4px -8px 0px rgb(0 0 0); font-weight: 600; color: #fff; background: #20bb58; border-radius: 8px; padding: 6px 23px; font-size: 14px; box-shadow: -4px -3px 0px rgb(0, 2, 1); font-family: 'AbdoMaster'"></span>
+      <select id="langSwitcher" class="form-select form-select-sm" style="width: 120px; background: #fff; color: #20bb58; border: none; border-radius: 7px; font-weight: 600;text-align: center;box-shadow: -4px -3px 0px rgb(0, 2, 1); font-family: 'AbdoMaster'">
+        <option value="ar">العربية</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+
+    <!-- Top Ad Banner -->
+    <div class="ad-banner">
+      <div class="ad-content" style="display: flex; align-items: center; gap: 12px;">
+        <img class="ad-img" src="" alt="Ad Image" style="max-height: 48px; max-width: 80px; display: none; border-radius: 6px; background: #fff;" />
+        <span class="ad-text"></span>
+      </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <img src="gallary/name-12.png" class="img-fluid" alt="img">
+            <!--<p>Find the secret spy before time runs out!</p>-->
+        </div>
+
+        <div class="game-container">
+            <div class="spy-icon"></div>
+
+            <!-- <div class="text-center">
+                <h2 class="mb-4" style="color: #FFF; font-family: "Inter", sans-serif;">تقدرون تجاوبون الحین</h2>
+                <div class="divider"></div>
+            </div> -->
+
+            <div id="newGameSection" class="text-center mb-4">
+                <button id="newGameBtn" class="btn-action new-game-btn"></button>
+                <input type="text" id="newGameInput" class="form-control form-control-custom d-none"
+                    placeholder="">
+            </div>
+
+            <div id="joinGameSection" class="text-center">
+                <button id="joinGameBtn" class="btn-action join-game-btn"></button>
+                <input type="text" id="joinGameInput" class="form-control form-control-custom d-none"
+                    placeholder="">
+                <button id="clearNameBtn" class="btn btn-sm btn-outline-secondary mt-2 d-none"></button>
+            </div>
+            <!--             
+            <div class="instructions">
+                <h3>How to Play</h3>
+                <p>
+                    The game host starts the round, and the game begins. The dealer asks one player a question by name: "Tell me, Alex..." Questions are usually about the location. Each player gets asked one question and then asks another player. Your goal is to figure out which player is the spy who doesn't know the location!
+                </p>
+            </div> -->
+
+            <div class="character">
+                <div class="character-head">
+                    <div class="character-eye eye-left"></div>
+                    <div class="character-eye eye-right"></div>
+                    <div class="character-mouth"></div>
+                </div>
+                <div class="character-body"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Localization: update UI text based on selected language
+        function updateLocalizedUI() {
+            document.title = t('gameTitle');
+            document.getElementById('newGameBtn').textContent = t('startGame');
+            document.getElementById('joinGameBtn').textContent = t('joinGame');
+            document.getElementById('clearNameBtn').textContent = t('clearName');
+            document.getElementById('newGameInput').placeholder = t('enterName');
+            document.getElementById('joinGameInput').placeholder = t('enterGameCode');
+            // Ad banner
+            const adText = document.querySelector('.ad-text');
+            if (adText && currentAds.length === 0) {
+                adText.textContent = t('adHere');
+            }
+        }
+
+        // Language switcher logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const langSwitcher = document.getElementById('langSwitcher');
+            const langLabel = document.getElementById('langSwitcherLabel');
+            const langLabelText = { en: 'Language', ar: 'اللغة' };
+            function updateLangLabel() {
+                const lang = localStorage.getItem('lang') || 'ar';
+                langLabel.textContent = langLabelText[lang] || langLabelText['en'];
+            }
+            const lang = localStorage.getItem('lang') || 'ar';
+            langSwitcher.value = lang;
+            updateLangLabel();
+            updateLocalizedUI();
+            langSwitcher.addEventListener('change', function() {
+                localStorage.setItem('lang', langSwitcher.value);
+                updateLangLabel();
+                updateLocalizedUI();
+            });
+        });
+
+        // ✅ Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAFOenFl1wULnf2_Kh1Dyx4lGjPATJiV_s",
+            authDomain: "simple-game-709c6.firebaseapp.com",
+            databaseURL: "https://simple-game-709c6-default-rtdb.firebaseio.com",
+            projectId: "simple-game-709c6",
+            storageBucket: "simple-game-709c6.appspot.com",
+            messagingSenderId: "87856525192",
+            appId: "1:87856525192:web:804023d0198f011ec2143d"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Ad system
+        let currentAds = [];
+        let currentAdIndex = 0;
+
+        function loadAdsFromFirebase() {
+          database.ref('admin/ads').on('value', snapshot => {
+            const adsData = snapshot.val() || {};
+            currentAds = Object.values(adsData).filter(ad => ad.status === 'active');
+            console.log('Loaded active ads from Firebase (real-time):', currentAds.length);
+
+            if (currentAds.length === 0) {
+              currentAds = [{
+                title: "Default Ad",
+                content: "🎮 Your Ad Here - Premium Gaming Experience",
+                url: ""
+              }];
+            }
+
+            initializeAdRotation();
+          });
+        }
+
+        function initializeAdRotation() {
+          if (currentAds.length > 0) {
+            updateAdBanner();
+
+            if (currentAds.length > 1) {
+              setInterval(() => {
+                currentAdIndex = (currentAdIndex + 1) % currentAds.length;
+                updateAdBanner();
+              }, 30000);
+            }
+          }
+        }
+
+        function updateAdBanner() {
+          const adText = document.querySelector('.ad-text');
+          const adImg = document.querySelector('.ad-img');
+          if (currentAds.length > 0) {
+            const currentAd = currentAds[currentAdIndex];
+            adText.textContent = currentAd.content;
+            if (currentAd.image && currentAd.image !== "") {
+              adImg.src = currentAd.image;
+              adImg.style.display = "inline-block";
+            } else {
+              adImg.style.display = "none";
+            }
+          } else if (adText) {
+            adText.textContent = t('adHere');
+            adImg.style.display = "none";
+          }
+        }
+
+        loadAdsFromFirebase();
+
+        // ✅ DOM Elements
+        const newGameBtn = document.getElementById('newGameBtn');
+        const joinGameBtn = document.getElementById('joinGameBtn');
+        const newGameInput = document.getElementById('newGameInput');
+        const joinGameInput = document.getElementById('joinGameInput');
+        const clearNameBtn = document.getElementById('clearNameBtn');
+
+        let newGameClicked = false;
+        let joinGameClicked = false;
+
+        // ✅ Game Code Generator
+        function generateGameCode(length = 5) {
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let code = '';
+            for (let i = 0; i < length; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        // ✅ New Game Logic
+        newGameBtn.addEventListener('click', () => {
+            if (!newGameClicked) {
+                newGameClicked = true;
+                newGameInput.classList.remove('d-none');
+                newGameInput.focus();
+                joinGameBtn.style.display = 'none';
+                joinGameInput.classList.add('d-none');
+                return;
+            }
+
+            const name = newGameInput.value.trim();
+            if (name === "") {
+                alert("Please enter your name.");
+                return;
+            }
+            localStorage.setItem('hostNameFor_', 'host')
+            localStorage.setItem('playerName', name);
+            const gameCode = generateGameCode();
+            localStorage.setItem('gameCode', gameCode);
+
+            database.ref('games/' + gameCode).set({
+                host: name,
+                players: {
+                    [name]: true
+                },
+                createdAt: Date.now()
+            }).then(() => {
+                window.location.href = `nextpage.html?code=${gameCode}`;
+            }).catch((err) => {
+                console.error(err);
+                alert("Failed to create game.");
+            });
+        });
+
+        // ✅ Join Game Logic
+        joinGameBtn.addEventListener('click', () => {
+            if (!joinGameClicked) {
+                joinGameClicked = true;
+                joinGameInput.classList.remove('d-none');
+                joinGameInput.focus();
+                newGameBtn.style.display = 'none';
+                newGameInput.classList.add('d-none');
+                // Show clear name button if there's a saved name
+                if (localStorage.getItem('playerName')) {
+                    clearNameBtn.classList.remove('d-none');
+                }
+                return;
+            }
+
+            const code = joinGameInput.value.trim();
+            if (code === "") {
+                alert("Please enter the game code.");
+                return;
+            }
+
+            let name = localStorage.getItem('playerName');
+            if (!name) {
+                const promptResult = prompt("Enter your name:");
+                if (!promptResult) {
+                    alert("Name is required to join the game.");
+                    return;
+                }
+                name = promptResult.trim();
+                if (!name) {
+                    alert("Name is required to join the game.");
+                    return;
+                }
+                localStorage.setItem('playerName', name);
+            } else {
+                // Ask if user wants to use the saved name or enter a new one
+                const useSavedName = confirm(`Use saved name "${name}"? Click Cancel to enter a different name.`);
+                if (!useSavedName) {
+                    const promptResult = prompt("Enter your name:");
+                    if (!promptResult) {
+                        alert("Name is required to join the game.");
+                        return;
+                    }
+                    name = promptResult.trim();
+                    if (!name) {
+                        alert("Name is required to join the game.");
+                        return;
+                    }
+                    localStorage.setItem('playerName', name);
+                }
+            }
+
+            localStorage.setItem('gameCode', code);
+
+            database.ref('games/' + code).once('value')
+                .then(snapshot => {
+                    if (snapshot.exists()) {
+                        const players = snapshot.val().players || {};
+
+                        // ✅ Check if name already exists in game
+                        if (players[name]) {
+                            // Ask for a new name
+                            const newName = prompt(`The name "${name}" is already taken in this game. Please enter a different name:`);
+                            if (!newName || newName.trim() === "") {
+                                alert("Name is required to join the game.");
+                                return;
+                            }
+                            name = newName.trim();
+
+                            // Check if the new name is also taken
+                            if (players[name]) {
+                                alert("This name is also taken. Please try again with a different name.");
+                                return;
+                            }
+
+                            // Update localStorage with the new name
+                            localStorage.setItem('playerName', name);
+                        }
+
+                        // ✅ Max 4 players check
+                        if (Object.keys(players).length >= 4) {
+                            alert("This game already has 4 players. Cannot join.");
+                            return;
+                        }
+
+                        database.ref('games/' + code + '/players/' + name).set(true)
+                            .then(() => {
+                                window.location.href = `nextpage.html?code=${code}`;
+                            }).catch((err) => {
+                                console.error(err);
+                                alert("Failed to join game.");
+                            });
+                    } else {
+                        alert("Game code not found. Please try again.");
+                    }
+                })
+                .catch((err) => {
+                    console.error(err);
+                    alert("Error accessing game.");
+                });
+        });
+
+        // ✅ Clear Name Button Logic
+        clearNameBtn.addEventListener('click', () => {
+            localStorage.removeItem('playerName');
+            localStorage.removeItem('hostNameFor_');
+            alert("Saved name cleared. You can now enter a new name.");
+            clearNameBtn.classList.add('d-none');
+        });
+
+        // ✅ Show clear name button if there's a saved name
+        if (localStorage.getItem('playerName')) {
+            clearNameBtn.classList.remove('d-none');
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>

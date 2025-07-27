@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spyfall Game - Playing</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="custom/custom.css" rel="stylesheet" type="text/css">
+  <style>
+   body {
+      padding: 20px;
+      padding-top: 80px; /* Account for ad banner */
+      background-image: url(./gallary/background-motion.png);
+background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  transition: background-image 1s ease-in-out;
+    }
+
+    .text-center h3 {
+      font-family: 'AbdoMaster';
+      font-size: 40px;
+      color: #fff;
+    }
+
+.player-box {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px 10px;
+  display: inline-flex;
+  align-items: center;
+  margin: 2px;
+  font-family: 'AbdoMaster';
+  color: #fff;
+  text-align: center;
+  margin: 0 auto;
+  width: fit-content;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+
+    .host-number {
+      font-weight: bold;
+      color: #ffcc00;
+      margin-right: 5px;
+    }
+    .host-number {
+  font-weight: bold;
+  color: #ffcc00;
+  margin-right: 5px;
+  display: none!important;
+}
+
+    .guess-option {
+      margin-bottom: 10px;
+      width: 100%;
+    }
+
+ .waiting-text {
+  color: white;
+  font-style: italic;
+  margin-bottom: 10px;
+  position: absolute;
+  bottom: 30px;
+  font-family: 'AbdoMaster';
+  font-size: 16px;
+  color: #fff;
+  text-align: center;
+  text-align: center;
+  margin: 0 auto;
+}
+
+/* New Features Styles */
+/* Ad Banner Styles */
+.ad-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.ad-content {
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  text-align: center;
+}
+
+.ad-text {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Points Dashboard Styles */
+.points-dashboard {
+  position: fixed;
+  top: 70px;
+  right: 10px;
+  width: 200px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  overflow: hidden;
+}
+
+.dashboard-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 8px 12px;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+}
+
+.dashboard-title {
+  font-size: 12px;
+}
+
+.points-container {
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.player-score {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  margin: 3px 0;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.player-score:hover {
+  background: #e9ecef;
+  transform: translateX(3px);
+}
+
+.player-name {
+  font-weight: bold;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-points {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+/* Notification System Styles */
+.notification-container {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 998;
+  width: 90%;
+  max-width: 400px;
+}
+
+.notification {
+  background: rgba(255, 255, 255, 0.95);
+  border-left: 4px solid #667eea;
+  padding: 12px 16px;
+  margin: 8px 0;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  animation: slideInDown 0.5s ease, fadeOut 0.5s ease 4.5s forwards;
+  color: #333;
+  font-weight: 500;
+}
+
+.notification.success {
+  border-left-color: #28a745;
+  background: rgba(212, 237, 218, 0.95);
+}
+
+.notification.info {
+  border-left-color: #17a2b8;
+  background: rgba(209, 236, 241, 0.95);
+}
+
+.notification.warning {
+  border-left-color: #ffc107;
+  background: rgba(255, 243, 205, 0.95);
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .points-dashboard {
+    width: 180px;
+    right: 5px;
+  }
+
+  .dashboard-title {
+    font-size: 11px;
+  }
+
+  .player-score {
+    font-size: 11px;
+  }
+
+  .notification-container {
+    width: 95%;
+  }
+
+  .ad-banner {
+    height: 50px;
+  }
+
+  .ad-content {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .points-dashboard {
+    width: 160px;
+    top: 60px;
+  }
+
+  .player-name {
+    max-width: 100px;
+  }
+}
+  </style>
+</head>
+
+<body>
+  <script>
+        document.addEventListener("DOMContentLoaded", function () {
+    const backgrounds=[ "gallary/picture/1.PNG",
+    "gallary/picture/2.PNG",
+    "gallary/picture/3.PNG",
+    "gallary/picture/4.PNG",
+    "gallary/picture/5.PNG",
+    "gallary/picture/6.PNG",
+    "gallary/picture/7.PNG",
+    "gallary/picture/8.PNG",
+    "gallary/picture/9.PNG",
+    "gallary/picture/10.PNG",
+    "gallary/picture/11.PNG",
+    "gallary/picture/12.PNG",
+    "gallary/picture/13.PNG",
+    "gallary/picture/14.PNG",
+    "gallary/picture/15.PNG",
+        "gallary/picture/16.PNG",
+    "gallary/picture/17.PNG",
+    "gallary/picture/18.PNG"
+    ];
+
+    const selectedBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+
+    document.body.style.backgroundImage = `url('${selectedBg}')`;
+  });
+</script>
+  <!-- Top Ad Banner -->
+  <div id="adBanner" class="ad-banner">
+    <div class="ad-content">
+      <span class="ad-text">🎮 Your Ad Here - Premium Gaming Experience</span>
+    </div>
+  </div>
+
+  <!-- Points Dashboard -->
+  <div id="pointsDashboard" class="points-dashboard">
+    <div class="dashboard-header">
+      <span class="dashboard-title">🏆 Live Scores</span>
+    </div>
+    <div id="pointsContainer" class="points-container">
+      <!-- Points will be populated here -->
+    </div>
+  </div>
+
+  <!-- Notification System -->
+  <div id="notificationContainer" class="notification-container">
+    <!-- Notifications will appear here -->
+  </div>
+
+  <div class="container text-center">
+    <img src="gallary/name-12.png" class="img-fluid" alt="img">
+    <p><span id="timer">00:00</span></p>
+    <p id="questionProgress" class="text-info mb-2">Question 1/20</p>
+    <h3>تقدرون تجاوبون الحین</h3>
+    <div id="questionSection"></div>
+
+    <div id="optionsContainer" class="mb-3"></div>
+
+    <button id="submitAnswerBtn" class="btn btn-success mb-2 d-none">Submit Answer</button>
+    <button id="nextBtn" class="btn btn-primary">Next</button>
+    <button id="endBtn" class="btn btn-danger d-none">End Game</button>
+
+    <h5>Players</h5>
+    <div id="playersContainer" class="d-flex flex-wrap justify-content-center"></div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAFOenFl1wULnf2_Kh1Dyx4lGjPATJiV_s",
+      authDomain: "simple-game-709c6.firebaseapp.com",
+      databaseURL: "https://simple-game-709c6-default-rtdb.firebaseio.com",
+      projectId: "simple-game-709c6",
+      storageBucket: "simple-game-709c6.appspot.com",
+      messagingSenderId: "87856525192",
+      appId: "1:87856525192:web:804023d0198f011ec2143d"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessCode = urlParams.get("code") || "testcode";
+    const savedPlayerName = localStorage.getItem("playerName") || "Player";
+    const gameRef = database.ref("games/" + accessCode);
+
+    const playersContainer = document.getElementById("playersContainer");
+    const questionSection = document.getElementById("questionSection");
+    const optionsContainer = document.getElementById("optionsContainer");
+    const submitAnswerBtn = document.getElementById("submitAnswerBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const endBtn = document.getElementById("endBtn");
+
+    let globalTimerInterval;
+    let questionLimit = 20; // Default value
+    let currentQuestionNumber = 0;
+    let gameStartTime = null;
+    let gameDuration = 0; // Will be set based on questionLimit
+
+    let selectedOption = null;
+    let isLastQuestion = false;
+
+    let hostName = "";
+
+    let questionLimitLoaded = false;
+
+    // ✅ Questions Array - Will be loaded from Firebase
+    let sampleQuestions = [];
+    let questionsLoaded = false;
+    let currentAds = [];
+    let currentAdIndex = 0;
+
+    // Load questions from Firebase admin panel (real-time listener)
+    function loadQuestionsFromFirebase() {
+      database.ref('admin/questions').on('value', snapshot => {
+        const questionsData = snapshot.val() || {};
+        sampleQuestions = Object.values(questionsData);
+        questionsLoaded = true;
+        console.log('Loaded questions from Firebase (real-time):', sampleQuestions.length);
+
+        // If no questions in admin panel, use fallback questions
+        if (sampleQuestions.length === 0) {
+          sampleQuestions = [
+            { q: "What do you usually wear at this place?", options: ["Give up all rice dishes!", "Give up Italian!"] },
+            { q: "Is this place noisy?", options: ["Disneyland in Kuwait.", "Snow in Kuwait."] },
+            { q: "Would you rather?", options: ["One week traffic 24/7", "1 week no air conditioning in car in Summer."] },
+            { q: "Would you rather?", options: ["Ramadan with no desserts", "Ramadan with no tea/coffee"] },
+            { q: "Would you rather?", options: ["Act in a Kuwait Masraheya", "Act in a Kuwaiti TV show"] },
+            { q: "Would you rather?", options: ["Family member points out you are wearing knock off at Zwara", "Realize in the middle of avenues there is a huge stain on the back of your clothes."] },
+            { q: "Would you rather?", options: ["Eat a whole lemon", "Eat a whole lime"] },
+            { q: "Would you rather?", options: ["Have purple hair for a year", "Have no hair for a year"] },
+            { q: "Would you rather?", options: ["Never use social media again", "Never watch TV again"] },
+            { q: "Would you rather?", options: ["Have the ability to fly", "Have the ability to read minds"] }
+          ];
+          console.log('Using fallback questions');
+        }
+      }, error => {
+        console.error('Error loading questions from Firebase:', error);
+        // Use fallback questions
+        sampleQuestions = [
+          { q: "What do you usually wear at this place?", options: ["Give up all rice dishes!", "Give up Italian!"] },
+          { q: "Is this place noisy?", options: ["Disneyland in Kuwait.", "Snow in Kuwait."] },
+          { q: "Would you rather?", options: ["One week traffic 24/7", "1 week no air conditioning in car in Summer."] }
+        ];
+        questionsLoaded = true;
+      });
+    }
+
+    // Load ads from Firebase admin panel (real-time listener)
+    function loadAdsFromFirebase() {
+      database.ref('admin/ads').on('value', snapshot => {
+        const adsData = snapshot.val() || {};
+        currentAds = Object.values(adsData).filter(ad => ad.status === 'active');
+        console.log('Loaded active ads from Firebase (real-time):', currentAds.length);
+
+        // If no ads in admin panel, use default ad
+        if (currentAds.length === 0) {
+          currentAds = [{
+            title: "Default Ad",
+            content: "🎮 Your Ad Here - Premium Gaming Experience",
+            url: ""
+          }];
+        }
+
+        // Initialize ad rotation
+        initializeAdRotation();
+      }, error => {
+        console.error('Error loading ads from Firebase:', error);
+        // Use default ad
+        currentAds = [{
+          title: "Default Ad",
+          content: "🎮 Your Ad Here - Premium Gaming Experience",
+          url: ""
+        }];
+        initializeAdRotation();
+      });
+    }
+
+    // Initialize ad rotation
+    function initializeAdRotation() {
+      if (currentAds.length > 0) {
+        updateAdBanner();
+
+        // Rotate ads every 30 seconds if there are multiple ads
+        if (currentAds.length > 1) {
+          setInterval(() => {
+            currentAdIndex = (currentAdIndex + 1) % currentAds.length;
+            updateAdBanner();
+          }, 30000);
+        }
+      }
+    }
+
+    // Update ad banner content
+    function updateAdBanner() {
+      const adBanner = document.getElementById('adBanner');
+      const adText = adBanner.querySelector('.ad-text');
+
+      if (currentAds.length > 0) {
+        const currentAd = currentAds[currentAdIndex];
+        adText.textContent = currentAd.content;
+
+        // Make ad clickable if URL is provided
+        if (currentAd.url) {
+          adBanner.style.cursor = 'pointer';
+          adBanner.onclick = () => window.open(currentAd.url, '_blank');
+        } else {
+          adBanner.style.cursor = 'default';
+          adBanner.onclick = null;
+        }
+      }
+    }
+
+    // Initialize game data - load questions, ads, and game settings
+    Promise.all([
+      loadQuestionsFromFirebase(),
+      loadAdsFromFirebase()
+    ]).then(() => {
+      console.log('All game data loaded successfully');
+
+      // Get question limit and initialize game timer
+      gameRef.child("questionLimit").once("value", snap => {
+        questionLimit = snap.val() || 20;
+        gameDuration = questionLimit * 60; // 1 minute per question
+        document.getElementById("questionProgress").textContent = `Question 1/${questionLimit}`;
+        // Show initial timer duration
+        document.getElementById("timer").textContent = formatTime(gameDuration);
+        questionLimitLoaded = true;
+      });
+
+      gameRef.child("host").once("value", snap => {
+        hostName = snap.val();
+      });
+    }).catch(error => {
+      console.error('Error loading game data:', error);
+      // Continue with fallback data
+      gameRef.child("questionLimit").once("value", snap => {
+        questionLimit = snap.val() || 20;
+        gameDuration = questionLimit * 60;
+        document.getElementById("questionProgress").textContent = `Question 1/${questionLimit}`;
+        document.getElementById("timer").textContent = formatTime(gameDuration);
+        questionLimitLoaded = true;
+      });
+
+      gameRef.child("host").once("value", snap => {
+        hostName = snap.val();
+      });
+    });
+
+    function initializeGlobalTimer() {
+      const now = Date.now();
+      gameRef.update({
+        gameStartTime: now,
+        gameDuration: gameDuration,
+        questionCount: currentQuestionNumber
+      });
+      gameStartTime = now;
+      document.getElementById("questionProgress").textContent = `Question ${currentQuestionNumber}/${questionLimit}`;
+      startGlobalTimer();
+    }
+
+    function startGlobalTimer() {
+      clearInterval(globalTimerInterval);
+      globalTimerInterval = setInterval(() => {
+        updateGlobalTimer();
+      }, 1000);
+
+      // Also listen for timer updates from Firebase
+      gameRef.child("gameStartTime").on("value", snap => {
+        if (snap.exists()) {
+          gameStartTime = snap.val();
+          updateGlobalTimer();
+        }
+      });
+    }
+
+    function updateGlobalTimer() {
+      if (!gameStartTime || !gameDuration) return;
+
+      const now = Date.now();
+      const elapsed = Math.floor((now - gameStartTime) / 1000);
+      const remaining = Math.max(0, gameDuration - elapsed);
+
+      const timerElement = document.getElementById("timer");
+      if (timerElement) {
+        timerElement.textContent = formatTime(remaining);
+      }
+
+      if (remaining <= 0) {
+        endGameDueToTimer();
+      }
+    }
+
+    function endGameDueToTimer() {
+      clearInterval(globalTimerInterval);
+      alert("Time's up! Game ended.");
+      calculateAndSetWinner().then(() => {
+        gameRef.update({ gameEnded: true });
+        window.location.href = `scoring.html?code=${accessCode}`;
+      });
+    }
+
+    function formatTime(t) {
+      const m = Math.floor(t / 60).toString().padStart(2, "0");
+      const s = (t % 60).toString().padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    function calculateAndSetWinner() {
+      return new Promise((resolve) => {
+        gameRef.child("points").once("value", pointsSnap => {
+          const points = pointsSnap.val() || {};
+
+          if (Object.keys(points).length === 0) {
+            // No points recorded, set a default message
+            gameRef.update({
+              winner: "No Winner",
+              gameCompleted: true
+            }).then(resolve);
+            return;
+          }
+
+          // Find the player with the highest score
+          let maxScore = -1;
+          let winners = [];
+
+          Object.entries(points).forEach(([player, score]) => {
+            if (score > maxScore) {
+              maxScore = score;
+              winners = [player];
+            } else if (score === maxScore) {
+              winners.push(player);
+            }
+          });
+
+          let winnerText;
+          if (winners.length === 1) {
+            winnerText = winners[0];
+          } else if (winners.length > 1) {
+            winnerText = `Tie: ${winners.join(", ")}`;
+          } else {
+            winnerText = "No Winner";
+          }
+
+          // Set winner in Firebase
+          gameRef.update({
+            winner: winnerText,
+            gameCompleted: true,
+            finalScores: points
+          }).then(resolve);
+        });
+      });
+    }
+
+    function renderPlayers(playersObj) {
+      playersContainer.innerHTML = "";
+      Object.keys(playersObj).forEach(name => {
+        const div = document.createElement("div");
+        div.className = "player-box";
+
+        if (name === hostName) {
+          div.innerHTML = `<span class="host-number">1</span> ${name}`;
+        } else {
+          div.textContent = name;
+        }
+
+        playersContainer.appendChild(div);
+      });
+    }
+
+    // Helper functions for turn-based submission
+    function getCurrentPlayerTurn(qData) {
+      if (!qData || !qData.submissionOrder || qData.currentSubmissionIndex === undefined) {
+        return null;
+      }
+      return qData.submissionOrder[qData.currentSubmissionIndex];
+    }
+
+    function canPlayerSubmit(qData, playerName) {
+      const currentPlayer = getCurrentPlayerTurn(qData);
+      return currentPlayer === playerName;
+    }
+
+    function advanceToNextPlayer(qData) {
+      const nextIndex = qData.currentSubmissionIndex + 1;
+      if (nextIndex < qData.submissionOrder.length) {
+        gameRef.child("currentQuestion/currentSubmissionIndex").set(nextIndex);
+      }
+    }
+
+    function allPlayersSubmitted(qData) {
+      return qData.currentSubmissionIndex >= qData.submissionOrder.length - 1;
+    }
+
+    function nextQuestionTurn(currentPlayers) {
+      const playerNames = Object.keys(currentPlayers);
+
+      // Check if we've reached the question limit
+      if (currentQuestionNumber >= questionLimit) {
+        endGameDueToQuestionLimit();
+        return;
+      }
+
+      // Continue asking questions until question limit is reached
+      isLastQuestion = currentQuestionNumber >= questionLimit - 1;
+
+      // Select a random player for each question (not based on who has played)
+      const nextPlayer = playerNames[Math.floor(Math.random() * playerNames.length)];
+
+      // Ensure questions are loaded before proceeding
+      if (!questionsLoaded || !sampleQuestions || sampleQuestions.length === 0) {
+        console.log("Questions not loaded yet, waiting...");
+        // Try to load questions again if not loaded
+        if (!questionsLoaded) {
+          loadQuestionsFromFirebase().then(() => {
+            if (sampleQuestions.length > 0) {
+              nextQuestionTurn(currentPlayers); // Retry after loading
+            } else {
+              alert("No questions available. Please add questions through the admin panel.");
+            }
+          });
+        } else {
+          alert("No questions available. Please add questions through the admin panel.");
+        }
+        return;
+      }
+
+      const q = sampleQuestions[Math.floor(Math.random() * sampleQuestions.length)];
+      console.log("Selected question:", q);
+
+      // Increment question count
+      currentQuestionNumber++;
+
+      // Initialize timer on first question (wait for questionLimit to load)
+      if (currentQuestionNumber === 1 && !gameStartTime) {
+        if (questionLimitLoaded) {
+          initializeGlobalTimer();
+        } else {
+          // Wait for questionLimit to load, then initialize
+          gameRef.child("questionLimit").once("value", snap => {
+            questionLimit = snap.val() || 20;
+            gameDuration = questionLimit * 60;
+            initializeGlobalTimer();
+          });
+        }
+      } else {
+        // Update question count in Firebase for existing game
+        gameRef.child("questionCount").set(currentQuestionNumber);
+        document.getElementById("questionProgress").textContent = `Question ${currentQuestionNumber}/${questionLimit}`;
+      }
+
+      // Create submission order: askedTo player first, then others
+      const submissionOrder = [nextPlayer];
+      playerNames.forEach(name => {
+        if (name !== nextPlayer) {
+          submissionOrder.push(name);
+        }
+      });
+
+      const questionData = {
+        question: q.q || "",
+        options: q.options || [],
+        askedTo: nextPlayer,
+        selectedAnswer: null,
+        guesses: {},
+        completedPlayers: {},
+        submissionOrder: submissionOrder,
+        currentSubmissionIndex: 0
+      };
+
+      console.log("Setting question data in Firebase:", questionData);
+
+      gameRef.child("currentQuestion").set(questionData)
+        .then(() => {
+          console.log("Question set successfully in Firebase");
+        })
+        .catch(error => {
+          console.error("Error setting question in Firebase:", error);
+        });
+
+      // Don't set played flag - we want to continue asking questions until limit is reached
+
+      nextBtn.classList.toggle("d-none", isLastQuestion);
+      endBtn.classList.toggle("d-none", !isLastQuestion);
+    }
+
+    function endGameDueToQuestionLimit() {
+      clearInterval(globalTimerInterval);
+      alert("All questions completed! Game ended.");
+      calculateAndSetWinner().then(() => {
+        gameRef.update({ gameEnded: true });
+        window.location.href = `scoring.html?code=${accessCode}`;
+      });
+    }
+
+
+
+    gameRef.child("players").on("value", snapshot => {
+      const players = snapshot.val();
+      if (players) renderPlayers(players);
+    });
+
+    gameRef.child("currentQuestion").on("value", (snapshot) => {
+      const qData = snapshot.val();
+      if (!qData) return;
+
+      optionsContainer.innerHTML = "";
+      questionSection.innerHTML = "";
+
+      // Check whose turn it is to submit (for backend logic only)
+      const currentPlayerTurn = getCurrentPlayerTurn(qData);
+      const canSubmit = canPlayerSubmit(qData, savedPlayerName);
+
+      if (qData.askedTo === savedPlayerName) {
+        questionSection.innerHTML = `<h5>Choose your answer:</h5>`;
+        console.log("Player is answering question. Options:", qData.options);
+
+        if (!qData.options || qData.options.length === 0) {
+          console.error("No options available for question");
+          questionSection.innerHTML += `<p>Error: No options available for this question.</p>`;
+          return;
+        }
+
+        qData.options.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "btn btn-outline-primary guess-option";
+          btn.textContent = opt;
+          btn.onclick = () => {
+            // Only allow submission if it's this player's turn (backend check)
+            if (!canSubmit) {
+              console.log("Not this player's turn yet");
+              return;
+            }
+            console.log("Option selected:", opt);
+            selectedOption = opt;
+            document.querySelectorAll(".guess-option").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            submitAnswerBtn.classList.remove("d-none");
+          };
+          optionsContainer.appendChild(btn);
+        });
+      } else {
+        questionSection.innerHTML = `<h6>${qData.askedTo}'s Turn:</h6>`;
+
+        if (!qData.selectedAnswer) {
+          const waitingMsg = document.createElement("div");
+          waitingMsg.className = "waiting-text";
+          waitingMsg.textContent = `Waiting for ${qData.askedTo} to select an answer...`;
+          optionsContainer.appendChild(waitingMsg);
+        }
+
+        qData.options.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "btn btn-outline-secondary guess-option";
+          btn.textContent = opt;
+          btn.disabled = !qData.selectedAnswer;
+          btn.onclick = () => {
+            // Only allow submission if it's this player's turn (backend check)
+            if (!canSubmit) {
+              console.log("Not this player's turn yet");
+              return;
+            }
+            submitGuess(opt);
+          };
+          optionsContainer.appendChild(btn);
+        });
+
+        // Enable next button only when all players have submitted (backend check)
+        nextBtn.disabled = !qData.selectedAnswer || !allPlayersSubmitted(qData);
+
+        // Start global timer if not already started
+        if (!gameStartTime) {
+          gameRef.child("gameStartTime").once("value", snap => {
+            if (snap.exists()) {
+              gameStartTime = snap.val();
+              // Also get game duration for proper timer calculation
+              gameRef.child("gameDuration").once("value", durationSnap => {
+                if (durationSnap.exists()) {
+                  gameDuration = durationSnap.val();
+                }
+                startGlobalTimer();
+              });
+            }
+          });
+        }
+      }
+    });
+
+    submitAnswerBtn.onclick = () => {
+      console.log("Submit button clicked. Selected option:", selectedOption);
+      if (selectedOption) {
+        console.log("Submitting answer to Firebase:", selectedOption);
+        gameRef.child("currentQuestion/selectedAnswer").set(selectedOption)
+          .then(() => {
+            console.log("Answer submitted successfully");
+            submitAnswerBtn.classList.add("d-none");
+            // Advance to next player's turn
+            gameRef.child("currentQuestion").once("value", snap => {
+              const qData = snap.val();
+              if (qData) {
+                advanceToNextPlayer(qData);
+              }
+            });
+          })
+          .catch(error => {
+            console.error("Error submitting answer:", error);
+            alert("Failed to submit answer. Please try again.");
+          });
+      } else {
+        console.log("No option selected");
+        alert("Please select an option first.");
+      }
+    };
+
+    function submitGuess(option) {
+      gameRef.child(`currentQuestion/guesses/${savedPlayerName}`).set(option || "No Answer")
+        .then(() => {
+          // Advance to next player's turn
+          gameRef.child("currentQuestion").once("value", snap => {
+            const qData = snap.val();
+            if (qData) {
+              advanceToNextPlayer(qData);
+              // Check if all players have submitted
+              if (allPlayersSubmitted(qData)) {
+                nextBtn.disabled = false;
+              }
+            }
+          });
+        });
+    }
+
+    nextBtn.onclick = () => {
+      handleNext();
+    };
+
+    function handleNext() {
+      // Don't clear global timer - it should continue running
+      gameRef.child("players").once("value").then(snapshot => {
+        const players = snapshot.val() || {};
+        gameRef.child("currentQuestion/guesses").once("value").then(guessSnap => {
+          const guesses = guessSnap.val() || {};
+          gameRef.child("currentQuestion/selectedAnswer").once("value").then(answerSnap => {
+            const correctAnswer = answerSnap.val();
+
+            Object.entries(guesses).forEach(([player, guess]) => {
+              if (guess === correctAnswer) {
+                gameRef.child(`points/${player}`).transaction(score => (score || 0) + 1);
+              }
+            });
+
+            nextQuestionTurn(players);
+          });
+        });
+      });
+      nextBtn.disabled = true;
+    }
+
+    endBtn.onclick = () => {
+      if (confirm("Are you sure you want to end the game?")) {
+        calculateAndSetWinner().then(() => {
+          gameRef.update({ gameEnded: true });
+          window.location.href = `scoring.html?code=${accessCode}`;
+        });
+      }
+    };
+
+    // Sync question count and timer on page load
+    gameRef.child("questionCount").on("value", snap => {
+      if (snap.exists()) {
+        currentQuestionNumber = snap.val();
+        document.getElementById("questionProgress").textContent = `Question ${currentQuestionNumber}/${questionLimit}`;
+      }
+    });
+
+    // Check if game has ended due to timer
+    gameRef.child("gameEnded").on("value", snap => {
+      if (snap.val() === true) {
+        clearInterval(globalTimerInterval);
+        window.location.href = `scoring.html?code=${accessCode}`;
+      }
+    });
+
+    gameRef.once("value", snap => {
+      if (!snap.hasChild("currentQuestion")) {
+        gameRef.child("players").once("value").then(snapshot => {
+          nextQuestionTurn(snapshot.val() || {});
+        });
+      } else {
+        // If game is already in progress, sync with existing timer
+        gameRef.child("gameStartTime").once("value", timerSnap => {
+          if (timerSnap.exists()) {
+            gameStartTime = timerSnap.val();
+            // Also get the game duration
+            gameRef.child("gameDuration").once("value", durationSnap => {
+              if (durationSnap.exists()) {
+                gameDuration = durationSnap.val();
+              }
+              startGlobalTimer();
+            });
+          }
+        });
+      }
+    });
+
+    // ===== NEW FEATURES IMPLEMENTATION =====
+
+    // Points Dashboard Functionality
+    const pointsContainer = document.getElementById("pointsContainer");
+    const notificationContainer = document.getElementById("notificationContainer");
+
+    let currentPoints = {};
+    let allPlayersData = {};
+
+    // Initialize points dashboard
+    function initializePointsDashboard() {
+      // Listen for real-time points updates
+      gameRef.child("points").on("value", snapshot => {
+        const newPoints = snapshot.val() || {};
+        updatePointsDashboard(newPoints);
+
+        // Check for point changes and show notifications
+        checkForPointChanges(currentPoints, newPoints);
+        currentPoints = { ...newPoints };
+      });
+
+      // Listen for player data
+      gameRef.child("players").on("value", snapshot => {
+        allPlayersData = snapshot.val() || {};
+        updatePointsDashboard(currentPoints);
+      });
+    }
+
+    // Update the points dashboard display
+    function updatePointsDashboard(points) {
+      pointsContainer.innerHTML = "";
+
+      // Get all players (including those with 0 points)
+      const allPlayers = new Set([
+        ...Object.keys(allPlayersData),
+        ...Object.keys(points)
+      ]);
+
+      // Convert to array and sort by points (highest first)
+      const sortedPlayers = Array.from(allPlayers).sort((a, b) => {
+        const pointsA = points[a] || 0;
+        const pointsB = points[b] || 0;
+        return pointsB - pointsA;
+      });
+
+      sortedPlayers.forEach(playerName => {
+        const playerPoints = points[playerName] || 0;
+        const playerDiv = document.createElement("div");
+        playerDiv.className = "player-score";
+
+        playerDiv.innerHTML = `
+          <span class="player-name" title="${playerName}">${playerName}</span>
+          <span class="player-points">${playerPoints} pts</span>
+        `;
+
+        pointsContainer.appendChild(playerDiv);
+      });
+    }
+
+    // Check for point changes and show notifications
+    function checkForPointChanges(oldPoints, newPoints) {
+      Object.keys(newPoints).forEach(playerName => {
+        const oldScore = oldPoints[playerName] || 0;
+        const newScore = newPoints[playerName] || 0;
+
+        if (newScore > oldScore) {
+          const pointsEarned = newScore - oldScore;
+          showNotification(
+            `🎉 ${playerName} earned ${pointsEarned} point${pointsEarned > 1 ? 's' : ''}! Great job!`,
+            'success'
+          );
+        }
+      });
+    }
+
+    // Enhanced notification system
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement("div");
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+
+      notificationContainer.appendChild(notification);
+
+      // Auto-remove notification after 5 seconds
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 5000);
+    }
+
+    // Enhanced notification system using Firebase listeners
+    let lastQuestionData = null;
+
+    // Listen for question changes to show context-aware notifications
+    gameRef.child("currentQuestion").on("value", questionSnap => {
+      const questionData = questionSnap.val();
+      if (!questionData || !questionData.selectedAnswer) return;
+
+      // Only process if this is a new question or answer update
+      if (lastQuestionData &&
+          lastQuestionData.selectedAnswer === questionData.selectedAnswer &&
+          JSON.stringify(lastQuestionData.guesses) === JSON.stringify(questionData.guesses)) {
+        return; // No changes, skip processing
+      }
+
+      // Check if we have both correct answer and all guesses
+      if (questionData.selectedAnswer && questionData.guesses) {
+        const correctAnswer = questionData.selectedAnswer;
+        const guesses = questionData.guesses || {};
+
+        // Show context-aware notifications only when answer is submitted
+        if (lastQuestionData && !lastQuestionData.selectedAnswer && questionData.selectedAnswer) {
+          Object.entries(guesses).forEach(([player, guess]) => {
+            if (guess === correctAnswer) {
+              if (player === savedPlayerName) {
+                showNotification("🎯 You gave the correct answer! Your points have been updated.", 'success');
+              } else {
+                showNotification(`✅ ${player} gave the correct answer. Points updated!`, 'info');
+              }
+            } else {
+              if (player === savedPlayerName) {
+                showNotification("❌ Your answer was incorrect. No points awarded.", 'warning');
+              }
+            }
+          });
+        }
+      }
+
+      lastQuestionData = questionData ? JSON.parse(JSON.stringify(questionData)) : null;
+    });
+
+    // Initialize the new features
+    initializePointsDashboard();
+
+    // Show welcome notification
+    setTimeout(() => {
+      showNotification("🎮 Welcome to the game! Points will update live as you play.", 'info');
+    }, 1000);
+
+
+
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
