@@ -336,27 +336,15 @@ background-size: cover;
     <div id="playersContainer" class="d-flex flex-wrap justify-content-center"></div>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.0.0/dist/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAFOenFl1wULnf2_Kh1Dyx4lGjPATJiV_s",
-      authDomain: "simple-game-709c6.firebaseapp.com",
-      databaseURL: "https://simple-game-709c6-default-rtdb.firebaseio.com",
-      projectId: "simple-game-709c6",
-      storageBucket: "simple-game-709c6.appspot.com",
-      messagingSenderId: "87856525192",
-      appId: "1:87856525192:web:804023d0198f011ec2143d"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    const socket = io.connect('http://localhost:5000');
 
     const urlParams = new URLSearchParams(window.location.search);
     const accessCode = urlParams.get("code") || "testcode";
     const savedPlayerName = localStorage.getItem("playerName") || "Player";
-    const gameRef = database.ref("games/" + accessCode);
 
     const playersContainer = document.getElementById("playersContainer");
     const questionSection = document.getElementById("questionSection");
@@ -378,76 +366,80 @@ background-size: cover;
 
     let questionLimitLoaded = false;
 
-    // ✅ Questions Array - Will be loaded from Firebase
+    // ✅ Questions Array - Will be loaded from backend
     let sampleQuestions = [];
     let questionsLoaded = false;
     let currentAds = [];
     let currentAdIndex = 0;
 
-    // Load questions from Firebase admin panel (real-time listener)
-    function loadQuestionsFromFirebase() {
-      database.ref('admin/questions').on('value', snapshot => {
-        const questionsData = snapshot.val() || {};
-        sampleQuestions = Object.values(questionsData);
-        questionsLoaded = true;
-        console.log('Loaded questions from Firebase (real-time):', sampleQuestions.length);
+    // Load questions from backend
+    function loadQuestionsFromBackend() {
+      fetch('/api/admin/questions')
+        .then(response => response.json())
+        .then(questions => {
+          sampleQuestions = questions;
+          questionsLoaded = true;
+          console.log('Loaded questions from backend:', sampleQuestions.length);
 
-        // If no questions in admin panel, use fallback questions
-        if (sampleQuestions.length === 0) {
+          // If no questions in admin panel, use fallback questions
+          if (sampleQuestions.length === 0) {
+            sampleQuestions = [
+              { q: "What do you usually wear at this place?", options: ["Give up all rice dishes!", "Give up Italian!"] },
+              { q: "Is this place noisy?", options: ["Disneyland in Kuwait.", "Snow in Kuwait."] },
+              { q: "Would you rather?", options: ["One week traffic 24/7", "1 week no air conditioning in car in Summer."] },
+              { q: "Would you rather?", options: ["Ramadan with no desserts", "Ramadan with no tea/coffee"] },
+              { q: "Would you rather?", options: ["Act in a Kuwait Masraheya", "Act in a Kuwaiti TV show"] },
+              { q: "Would you rather?", options: ["Family member points out you are wearing knock off at Zwara", "Realize in the middle of avenues there is a huge stain on the back of your clothes."] },
+              { q: "Would you rather?", options: ["Eat a whole lemon", "Eat a whole lime"] },
+              { q: "Would you rather?", options: ["Have purple hair for a year", "Have no hair for a year"] },
+              { q: "Would you rather?", options: ["Never use social media again", "Never watch TV again"] },
+              { q: "Would you rather?", options: ["Have the ability to fly", "Have the ability to read minds"] }
+            ];
+            console.log('Using fallback questions');
+          }
+        })
+        .catch(error => {
+          console.error('Error loading questions from backend:', error);
+          // Use fallback questions
           sampleQuestions = [
             { q: "What do you usually wear at this place?", options: ["Give up all rice dishes!", "Give up Italian!"] },
             { q: "Is this place noisy?", options: ["Disneyland in Kuwait.", "Snow in Kuwait."] },
-            { q: "Would you rather?", options: ["One week traffic 24/7", "1 week no air conditioning in car in Summer."] },
-            { q: "Would you rather?", options: ["Ramadan with no desserts", "Ramadan with no tea/coffee"] },
-            { q: "Would you rather?", options: ["Act in a Kuwait Masraheya", "Act in a Kuwaiti TV show"] },
-            { q: "Would you rather?", options: ["Family member points out you are wearing knock off at Zwara", "Realize in the middle of avenues there is a huge stain on the back of your clothes."] },
-            { q: "Would you rather?", options: ["Eat a whole lemon", "Eat a whole lime"] },
-            { q: "Would you rather?", options: ["Have purple hair for a year", "Have no hair for a year"] },
-            { q: "Would you rather?", options: ["Never use social media again", "Never watch TV again"] },
-            { q: "Would you rather?", options: ["Have the ability to fly", "Have the ability to read minds"] }
+            { q: "Would you rather?", options: ["One week traffic 24/7", "1 week no air conditioning in car in Summer."] }
           ];
-          console.log('Using fallback questions');
-        }
-      }, error => {
-        console.error('Error loading questions from Firebase:', error);
-        // Use fallback questions
-        sampleQuestions = [
-          { q: "What do you usually wear at this place?", options: ["Give up all rice dishes!", "Give up Italian!"] },
-          { q: "Is this place noisy?", options: ["Disneyland in Kuwait.", "Snow in Kuwait."] },
-          { q: "Would you rather?", options: ["One week traffic 24/7", "1 week no air conditioning in car in Summer."] }
-        ];
-        questionsLoaded = true;
-      });
+          questionsLoaded = true;
+        });
     }
 
-    // Load ads from Firebase admin panel (real-time listener)
-    function loadAdsFromFirebase() {
-      database.ref('admin/ads').on('value', snapshot => {
-        const adsData = snapshot.val() || {};
-        currentAds = Object.values(adsData).filter(ad => ad.status === 'active');
-        console.log('Loaded active ads from Firebase (real-time):', currentAds.length);
+    // Load ads from backend
+    function loadAdsFromBackend() {
+      fetch('/api/admin/ads')
+        .then(response => response.json())
+        .then(ads => {
+          currentAds = ads.filter(ad => ad.status === 'active');
+          console.log('Loaded active ads from backend:', currentAds.length);
 
-        // If no ads in admin panel, use default ad
-        if (currentAds.length === 0) {
+          // If no ads in admin panel, use default ad
+          if (currentAds.length === 0) {
+            currentAds = [{
+              title: "Default Ad",
+              content: "🎮 Your Ad Here - Premium Gaming Experience",
+              url: ""
+            }];
+          }
+
+          // Initialize ad rotation
+          initializeAdRotation();
+        })
+        .catch(error => {
+          console.error('Error loading ads from backend:', error);
+          // Use default ad
           currentAds = [{
             title: "Default Ad",
             content: "🎮 Your Ad Here - Premium Gaming Experience",
             url: ""
           }];
-        }
-
-        // Initialize ad rotation
-        initializeAdRotation();
-      }, error => {
-        console.error('Error loading ads from Firebase:', error);
-        // Use default ad
-        currentAds = [{
-          title: "Default Ad",
-          content: "🎮 Your Ad Here - Premium Gaming Experience",
-          url: ""
-        }];
-        initializeAdRotation();
-      });
+          initializeAdRotation();
+        });
     }
 
     // Initialize ad rotation
@@ -487,50 +479,59 @@ background-size: cover;
 
     // Initialize game data - load questions, ads, and game settings
     Promise.all([
-      loadQuestionsFromFirebase(),
-      loadAdsFromFirebase()
+      loadQuestionsFromBackend(),
+      loadAdsFromBackend()
     ]).then(() => {
       console.log('All game data loaded successfully');
 
       // Get question limit and initialize game timer
-      gameRef.child("questionLimit").once("value", snap => {
-        questionLimit = snap.val() || 20;
-        gameDuration = questionLimit * 60; // 1 minute per question
-        document.getElementById("questionProgress").textContent = `Question 1/${questionLimit}`;
-        // Show initial timer duration
-        document.getElementById("timer").textContent = formatTime(gameDuration);
-        questionLimitLoaded = true;
-      });
+      fetch(`/api/game/${accessCode}`)
+        .then(response => response.json())
+        .then(game => {
+          if (game.questionLimit) {
+            questionLimit = game.questionLimit;
+            gameDuration = questionLimit * 60; // 1 minute per question
+            document.getElementById("questionProgress").textContent = `Question 1/${questionLimit}`;
+            // Show initial timer duration
+            document.getElementById("timer").textContent = formatTime(gameDuration);
+            questionLimitLoaded = true;
+          }
 
-      gameRef.child("host").once("value", snap => {
-        hostName = snap.val();
-      });
-    }).catch(error => {
-      console.error('Error loading game data:', error);
-      // Continue with fallback data
-      gameRef.child("questionLimit").once("value", snap => {
-        questionLimit = snap.val() || 20;
-        gameDuration = questionLimit * 60;
-        document.getElementById("questionProgress").textContent = `Question 1/${questionLimit}`;
-        document.getElementById("timer").textContent = formatTime(gameDuration);
-        questionLimitLoaded = true;
-      });
-
-      gameRef.child("host").once("value", snap => {
-        hostName = snap.val();
-      });
+          if (game.host) {
+            hostName = game.host;
+          }
+        })
+        .catch(error => {
+          console.error('Error loading game data:', error);
+          // Continue with fallback data
+          questionLimit = 20;
+          gameDuration = questionLimit * 60;
+          document.getElementById("questionProgress").textContent = `Question 1/${questionLimit}`;
+          document.getElementById("timer").textContent = formatTime(gameDuration);
+          questionLimitLoaded = true;
+        });
     });
 
     function initializeGlobalTimer() {
       const now = Date.now();
-      gameRef.update({
-        gameStartTime: now,
-        gameDuration: gameDuration,
-        questionCount: currentQuestionNumber
+      fetch(`/api/game/${accessCode}/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ startTime: now, duration: gameDuration })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          gameStartTime = now;
+          document.getElementById("questionProgress").textContent = `Question ${currentQuestionNumber}/${questionLimit}`;
+          startGlobalTimer();
+        }
+      })
+      .catch(error => {
+        console.error('Error starting game timer:', error);
       });
-      gameStartTime = now;
-      document.getElementById("questionProgress").textContent = `Question ${currentQuestionNumber}/${questionLimit}`;
-      startGlobalTimer();
     }
 
     function startGlobalTimer() {
@@ -538,14 +539,6 @@ background-size: cover;
       globalTimerInterval = setInterval(() => {
         updateGlobalTimer();
       }, 1000);
-
-      // Also listen for timer updates from Firebase
-      gameRef.child("gameStartTime").on("value", snap => {
-        if (snap.exists()) {
-          gameStartTime = snap.val();
-          updateGlobalTimer();
-        }
-      });
     }
 
     function updateGlobalTimer() {
@@ -569,7 +562,6 @@ background-size: cover;
       clearInterval(globalTimerInterval);
       alert("Time's up! Game ended.");
       calculateAndSetWinner().then(() => {
-        gameRef.update({ gameEnded: true });
         window.location.href = `scoring.html?code=${accessCode}`;
       });
     }
@@ -581,48 +573,17 @@ background-size: cover;
     }
 
     function calculateAndSetWinner() {
-      return new Promise((resolve) => {
-        gameRef.child("points").once("value", pointsSnap => {
-          const points = pointsSnap.val() || {};
-
-          if (Object.keys(points).length === 0) {
-            // No points recorded, set a default message
-            gameRef.update({
-              winner: "No Winner",
-              gameCompleted: true
-            }).then(resolve);
-            return;
-          }
-
-          // Find the player with the highest score
-          let maxScore = -1;
-          let winners = [];
-
-          Object.entries(points).forEach(([player, score]) => {
-            if (score > maxScore) {
-              maxScore = score;
-              winners = [player];
-            } else if (score === maxScore) {
-              winners.push(player);
-            }
-          });
-
-          let winnerText;
-          if (winners.length === 1) {
-            winnerText = winners[0];
-          } else if (winners.length > 1) {
-            winnerText = `Tie: ${winners.join(", ")}`;
-          } else {
-            winnerText = "No Winner";
-          }
-
-          // Set winner in Firebase
-          gameRef.update({
-            winner: winnerText,
-            gameCompleted: true,
-            finalScores: points
-          }).then(resolve);
-        });
+      return fetch(`/api/game/${accessCode}/end`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.href = `scoring.html?code=${accessCode}`;
+        }
+      })
+      .catch(error => {
+        console.error('Error ending game:', error);
       });
     }
 
@@ -658,7 +619,16 @@ background-size: cover;
     function advanceToNextPlayer(qData) {
       const nextIndex = qData.currentSubmissionIndex + 1;
       if (nextIndex < qData.submissionOrder.length) {
-        gameRef.child("currentQuestion/currentSubmissionIndex").set(nextIndex);
+        fetch(`/api/game/${accessCode}/question`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ currentSubmissionIndex: nextIndex })
+        })
+        .catch(error => {
+          console.error('Error updating question state:', error);
+        });
       }
     }
 
@@ -686,7 +656,7 @@ background-size: cover;
         console.log("Questions not loaded yet, waiting...");
         // Try to load questions again if not loaded
         if (!questionsLoaded) {
-          loadQuestionsFromFirebase().then(() => {
+          loadQuestionsFromBackend().then(() => {
             if (sampleQuestions.length > 0) {
               nextQuestionTurn(currentPlayers); // Retry after loading
             } else {
@@ -711,16 +681,37 @@ background-size: cover;
           initializeGlobalTimer();
         } else {
           // Wait for questionLimit to load, then initialize
-          gameRef.child("questionLimit").once("value", snap => {
-            questionLimit = snap.val() || 20;
-            gameDuration = questionLimit * 60;
-            initializeGlobalTimer();
-          });
+          fetch(`/api/game/${accessCode}`)
+            .then(response => response.json())
+            .then(game => {
+              if (game.questionLimit) {
+                questionLimit = game.questionLimit;
+                gameDuration = questionLimit * 60;
+                initializeGlobalTimer();
+              }
+            })
+            .catch(error => {
+              console.error('Error loading game data:', error);
+            });
         }
       } else {
-        // Update question count in Firebase for existing game
-        gameRef.child("questionCount").set(currentQuestionNumber);
-        document.getElementById("questionProgress").textContent = `Question ${currentQuestionNumber}/${questionLimit}`;
+        // Update question count in backend for existing game
+        fetch(`/api/game/${accessCode}/questionCount`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ questionCount: currentQuestionNumber })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById("questionProgress").textContent = `Question ${currentQuestionNumber}/${questionLimit}`;
+          }
+        })
+        .catch(error => {
+          console.error('Error updating question count:', error);
+        });
       }
 
       // Create submission order: askedTo player first, then others
@@ -742,15 +733,24 @@ background-size: cover;
         currentSubmissionIndex: 0
       };
 
-      console.log("Setting question data in Firebase:", questionData);
+      console.log("Setting question data in backend:", questionData);
 
-      gameRef.child("currentQuestion").set(questionData)
-        .then(() => {
-          console.log("Question set successfully in Firebase");
-        })
-        .catch(error => {
-          console.error("Error setting question in Firebase:", error);
-        });
+      fetch(`/api/game/${accessCode}/question`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(questionData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          console.log("Question set successfully in backend");
+        }
+      })
+      .catch(error => {
+        console.error("Error setting question in backend:", error);
+      });
 
       // Don't set played flag - we want to continue asking questions until limit is reached
 
@@ -762,351 +762,83 @@ background-size: cover;
       clearInterval(globalTimerInterval);
       alert("All questions completed! Game ended.");
       calculateAndSetWinner().then(() => {
-        gameRef.update({ gameEnded: true });
         window.location.href = `scoring.html?code=${accessCode}`;
       });
     }
 
+    // Join the game room
+    socket.emit('joinGame', accessCode);
 
-
-    gameRef.child("players").on("value", snapshot => {
-      const players = snapshot.val();
-      if (players) renderPlayers(players);
-    });
-
-    gameRef.child("currentQuestion").on("value", (snapshot) => {
-      const qData = snapshot.val();
-      if (!qData) return;
-
-      optionsContainer.innerHTML = "";
-      questionSection.innerHTML = "";
-
-      // Check whose turn it is to submit (for backend logic only)
-      const currentPlayerTurn = getCurrentPlayerTurn(qData);
-      const canSubmit = canPlayerSubmit(qData, savedPlayerName);
-
-      if (qData.askedTo === savedPlayerName) {
-        questionSection.innerHTML = `<h5>Choose your answer:</h5>`;
-        console.log("Player is answering question. Options:", qData.options);
-
-        if (!qData.options || qData.options.length === 0) {
-          console.error("No options available for question");
-          questionSection.innerHTML += `<p>Error: No options available for this question.</p>`;
-          return;
-        }
-
-        qData.options.forEach(opt => {
-          const btn = document.createElement("button");
-          btn.className = "btn btn-outline-primary guess-option";
-          btn.textContent = opt;
-          btn.onclick = () => {
-            // Only allow submission if it's this player's turn (backend check)
-            if (!canSubmit) {
-              console.log("Not this player's turn yet");
-              return;
-            }
-            console.log("Option selected:", opt);
-            selectedOption = opt;
-            document.querySelectorAll(".guess-option").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            submitAnswerBtn.classList.remove("d-none");
-          };
-          optionsContainer.appendChild(btn);
-        });
-      } else {
-        questionSection.innerHTML = `<h6>${qData.askedTo}'s Turn:</h6>`;
-
-        if (!qData.selectedAnswer) {
-          const waitingMsg = document.createElement("div");
-          waitingMsg.className = "waiting-text";
-          waitingMsg.textContent = `Waiting for ${qData.askedTo} to select an answer...`;
-          optionsContainer.appendChild(waitingMsg);
-        }
-
-        qData.options.forEach(opt => {
-          const btn = document.createElement("button");
-          btn.className = "btn btn-outline-secondary guess-option";
-          btn.textContent = opt;
-          btn.disabled = !qData.selectedAnswer;
-          btn.onclick = () => {
-            // Only allow submission if it's this player's turn (backend check)
-            if (!canSubmit) {
-              console.log("Not this player's turn yet");
-              return;
-            }
-            submitGuess(opt);
-          };
-          optionsContainer.appendChild(btn);
-        });
-
-        // Enable next button only when all players have submitted (backend check)
-        nextBtn.disabled = !qData.selectedAnswer || !allPlayersSubmitted(qData);
-
-        // Start global timer if not already started
-        if (!gameStartTime) {
-          gameRef.child("gameStartTime").once("value", snap => {
-            if (snap.exists()) {
-              gameStartTime = snap.val();
-              // Also get game duration for proper timer calculation
-              gameRef.child("gameDuration").once("value", durationSnap => {
-                if (durationSnap.exists()) {
-                  gameDuration = durationSnap.val();
-                }
-                startGlobalTimer();
-              });
-            }
-          });
-        }
+    // Listen for game data
+    socket.on('gameData', (game) => {
+      if (!game) {
+        alert("Game not found.");
+        window.location.href = "index.html";
+        return;
       }
-    });
 
-    submitAnswerBtn.onclick = () => {
-      console.log("Submit button clicked. Selected option:", selectedOption);
-      if (selectedOption) {
-        console.log("Submitting answer to Firebase:", selectedOption);
-        gameRef.child("currentQuestion/selectedAnswer").set(selectedOption)
-          .then(() => {
-            console.log("Answer submitted successfully");
-            submitAnswerBtn.classList.add("d-none");
-            // Advance to next player's turn
-            gameRef.child("currentQuestion").once("value", snap => {
-              const qData = snap.val();
-              if (qData) {
-                advanceToNextPlayer(qData);
-              }
-            });
-          })
-          .catch(error => {
-            console.error("Error submitting answer:", error);
-            alert("Failed to submit answer. Please try again.");
-          });
-      } else {
-        console.log("No option selected");
-        alert("Please select an option first.");
-      }
-    };
+      // Update players list
+      renderPlayers(game.players || {});
 
-    function submitGuess(option) {
-      gameRef.child(`currentQuestion/guesses/${savedPlayerName}`).set(option || "No Answer")
-        .then(() => {
-          // Advance to next player's turn
-          gameRef.child("currentQuestion").once("value", snap => {
-            const qData = snap.val();
-            if (qData) {
-              advanceToNextPlayer(qData);
-              // Check if all players have submitted
-              if (allPlayersSubmitted(qData)) {
-                nextBtn.disabled = false;
-              }
-            }
-          });
-        });
-    }
+      // Listen for real-time updates
+      socket.on('gameUpdated', (updatedGame) => {
+        renderPlayers(updatedGame.players || {});
 
-    nextBtn.onclick = () => {
-      handleNext();
-    };
+        const readyCount = Object.keys(updatedGame.playersReady || {}).length;
+        const totalCount = Object.keys(updatedGame.players || {}).length;
+        document.getElementById("statusText").innerText = `${readyCount}/${totalCount} players ready`;
 
-    function handleNext() {
-      // Don't clear global timer - it should continue running
-      gameRef.child("players").once("value").then(snapshot => {
-        const players = snapshot.val() || {};
-        gameRef.child("currentQuestion/guesses").once("value").then(guessSnap => {
-          const guesses = guessSnap.val() || {};
-          gameRef.child("currentQuestion/selectedAnswer").once("value").then(answerSnap => {
-            const correctAnswer = answerSnap.val();
-
-            Object.entries(guesses).forEach(([player, guess]) => {
-              if (guess === correctAnswer) {
-                gameRef.child(`points/${player}`).transaction(score => (score || 0) + 1);
-              }
-            });
-
-            nextQuestionTurn(players);
-          });
-        });
+        if (localStorage.getItem('hostNameFor_') === "host") {
+          startGameBtn.disabled = totalCount < 2;
+        }
       });
-      nextBtn.disabled = true;
-    }
+    });
 
-    endBtn.onclick = () => {
-      if (confirm("Are you sure you want to end the game?")) {
-        calculateAndSetWinner().then(() => {
-          gameRef.update({ gameEnded: true });
-          window.location.href = `scoring.html?code=${accessCode}`;
-        });
-      }
-    };
+    // Listen for game not found
+    socket.on('gameNotFound', (data) => {
+      alert(data.message);
+      window.location.href = "index.html";
+    });
+
+    // Listen for player joined
+    socket.on('playerJoined', (data) => {
+      console.log('Player joined:', data.playerId);
+    });
+
+    // Listen for game started
+    socket.on('gameStarted', () => {
+      window.location.href = `finalpage.html?code=${accessCode}`;
+    });
+
+    // Listen for game ended
+    socket.on('gameEnded', () => {
+      window.location.href = `scoring.html?code=${accessCode}`;
+    });
 
     // Sync question count and timer on page load
-    gameRef.child("questionCount").on("value", snap => {
-      if (snap.exists()) {
-        currentQuestionNumber = snap.val();
-        document.getElementById("questionProgress").textContent = `Question ${currentQuestionNumber}/${questionLimit}`;
-      }
-    });
+    fetch(`/api/game/${accessCode}/questionCount`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.questionCount) {
+          currentQuestionNumber = data.questionCount;
+          document.getElementById("questionProgress").textContent = `Question ${currentQuestionNumber}/${questionLimit}`;
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching question count:', error);
+      });
 
     // Check if game has ended due to timer
-    gameRef.child("gameEnded").on("value", snap => {
-      if (snap.val() === true) {
-        clearInterval(globalTimerInterval);
-        window.location.href = `scoring.html?code=${accessCode}`;
-      }
-    });
-
-    gameRef.once("value", snap => {
-      if (!snap.hasChild("currentQuestion")) {
-        gameRef.child("players").once("value").then(snapshot => {
-          nextQuestionTurn(snapshot.val() || {});
-        });
-      } else {
-        // If game is already in progress, sync with existing timer
-        gameRef.child("gameStartTime").once("value", timerSnap => {
-          if (timerSnap.exists()) {
-            gameStartTime = timerSnap.val();
-            // Also get the game duration
-            gameRef.child("gameDuration").once("value", durationSnap => {
-              if (durationSnap.exists()) {
-                gameDuration = durationSnap.val();
-              }
-              startGlobalTimer();
-            });
-          }
-        });
-      }
-    });
-
-    // ===== NEW FEATURES IMPLEMENTATION =====
-
-    // Points Dashboard Functionality
-    const pointsContainer = document.getElementById("pointsContainer");
-    const notificationContainer = document.getElementById("notificationContainer");
-
-    let currentPoints = {};
-    let allPlayersData = {};
-
-    // Initialize points dashboard
-    function initializePointsDashboard() {
-      // Listen for real-time points updates
-      gameRef.child("points").on("value", snapshot => {
-        const newPoints = snapshot.val() || {};
-        updatePointsDashboard(newPoints);
-
-        // Check for point changes and show notifications
-        checkForPointChanges(currentPoints, newPoints);
-        currentPoints = { ...newPoints };
-      });
-
-      // Listen for player data
-      gameRef.child("players").on("value", snapshot => {
-        allPlayersData = snapshot.val() || {};
-        updatePointsDashboard(currentPoints);
-      });
-    }
-
-    // Update the points dashboard display
-    function updatePointsDashboard(points) {
-      pointsContainer.innerHTML = "";
-
-      // Get all players (including those with 0 points)
-      const allPlayers = new Set([
-        ...Object.keys(allPlayersData),
-        ...Object.keys(points)
-      ]);
-
-      // Convert to array and sort by points (highest first)
-      const sortedPlayers = Array.from(allPlayers).sort((a, b) => {
-        const pointsA = points[a] || 0;
-        const pointsB = points[b] || 0;
-        return pointsB - pointsA;
-      });
-
-      sortedPlayers.forEach(playerName => {
-        const playerPoints = points[playerName] || 0;
-        const playerDiv = document.createElement("div");
-        playerDiv.className = "player-score";
-
-        playerDiv.innerHTML = `
-          <span class="player-name" title="${playerName}">${playerName}</span>
-          <span class="player-points">${playerPoints} pts</span>
-        `;
-
-        pointsContainer.appendChild(playerDiv);
-      });
-    }
-
-    // Check for point changes and show notifications
-    function checkForPointChanges(oldPoints, newPoints) {
-      Object.keys(newPoints).forEach(playerName => {
-        const oldScore = oldPoints[playerName] || 0;
-        const newScore = newPoints[playerName] || 0;
-
-        if (newScore > oldScore) {
-          const pointsEarned = newScore - oldScore;
-          showNotification(
-            `🎉 ${playerName} earned ${pointsEarned} point${pointsEarned > 1 ? 's' : ''}! Great job!`,
-            'success'
-          );
+    fetch(`/api/game/${accessCode}/ended`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.ended) {
+          window.location.href = `scoring.html?code=${accessCode}`;
         }
+      })
+      .catch(error => {
+        console.error('Error checking game status:', error);
       });
-    }
-
-    // Enhanced notification system
-    function showNotification(message, type = 'info') {
-      const notification = document.createElement("div");
-      notification.className = `notification ${type}`;
-      notification.textContent = message;
-
-      notificationContainer.appendChild(notification);
-
-      // Auto-remove notification after 5 seconds
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification);
-        }
-      }, 5000);
-    }
-
-    // Enhanced notification system using Firebase listeners
-    let lastQuestionData = null;
-
-    // Listen for question changes to show context-aware notifications
-    gameRef.child("currentQuestion").on("value", questionSnap => {
-      const questionData = questionSnap.val();
-      if (!questionData || !questionData.selectedAnswer) return;
-
-      // Only process if this is a new question or answer update
-      if (lastQuestionData &&
-          lastQuestionData.selectedAnswer === questionData.selectedAnswer &&
-          JSON.stringify(lastQuestionData.guesses) === JSON.stringify(questionData.guesses)) {
-        return; // No changes, skip processing
-      }
-
-      // Check if we have both correct answer and all guesses
-      if (questionData.selectedAnswer && questionData.guesses) {
-        const correctAnswer = questionData.selectedAnswer;
-        const guesses = questionData.guesses || {};
-
-        // Show context-aware notifications only when answer is submitted
-        if (lastQuestionData && !lastQuestionData.selectedAnswer && questionData.selectedAnswer) {
-          Object.entries(guesses).forEach(([player, guess]) => {
-            if (guess === correctAnswer) {
-              if (player === savedPlayerName) {
-                showNotification("🎯 You gave the correct answer! Your points have been updated.", 'success');
-              } else {
-                showNotification(`✅ ${player} gave the correct answer. Points updated!`, 'info');
-              }
-            } else {
-              if (player === savedPlayerName) {
-                showNotification("❌ Your answer was incorrect. No points awarded.", 'warning');
-              }
-            }
-          });
-        }
-      }
-
-      lastQuestionData = questionData ? JSON.parse(JSON.stringify(questionData)) : null;
-    });
 
     // Initialize the new features
     initializePointsDashboard();
@@ -1115,12 +847,7 @@ background-size: cover;
     setTimeout(() => {
       showNotification("🎮 Welcome to the game! Points will update live as you play.", 'info');
     }, 1000);
-
-
-
   </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
