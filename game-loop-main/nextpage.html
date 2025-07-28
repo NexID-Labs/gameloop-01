@@ -26,7 +26,6 @@
       margin-left: 5px;
     }
 
-  
     #copyBtn {
       cursor: pointer;
       margin-left: 5px;
@@ -149,7 +148,21 @@ const backgrounds=[ "gallary/picture/1.PNG",
     crossorigin="anonymous"></script>
 
   <script>
-    const socket = io.connect('http://localhost:5000');
+    // Load environment variables
+    const env = {};
+    fetch('/.env')
+      .then(response => response.text())
+      .then(data => {
+        const lines = data.split('\n');
+        lines.forEach(line => {
+          const [key, value] = line.split('=');
+          if (key && value) {
+            env[key.trim()] = value.trim();
+          }
+        });
+      });
+
+    const socket = io.connect(env.BACKEND_URL);
 
     const urlParams = new URLSearchParams(window.location.search);
     const accessCode = urlParams.get('code') || 'N/A';
@@ -166,7 +179,7 @@ const backgrounds=[ "gallary/picture/1.PNG",
     let currentAdIndex = 0;
 
     function loadAdsFromBackend() {
-      fetch('/api/admin/ads')
+      fetch(`${env.BACKEND_URL}/api/admin/ads`)
         .then(response => response.json())
         .then(ads => {
           currentAds = ads.filter(ad => ad.status === 'active');
@@ -250,7 +263,7 @@ const backgrounds=[ "gallary/picture/1.PNG",
       savedPlayerName = name;
 
       // Fetch game data from the backend
-      fetch(`/api/game/${accessCode}`)
+      fetch(`${env.BACKEND_URL}/api/game/${accessCode}`)
         .then(response => response.json())
         .then(game => {
           if (game.host) {
@@ -320,7 +333,7 @@ const backgrounds=[ "gallary/picture/1.PNG",
         questionLimitDisplay.textContent = `Questions: ${selectedLimit}`;
 
         // Update question limit in the backend
-        fetch(`/api/game/${accessCode}/questionLimit`, {
+        fetch(`${env.BACKEND_URL}/api/game/${accessCode}/questionLimit`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'

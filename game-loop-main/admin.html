@@ -146,6 +146,20 @@
     </div>
 
     <script>
+        // Load environment variables
+        const env = {};
+        fetch('/.env')
+          .then(response => response.text())
+          .then(data => {
+            const lines = data.split('\n');
+            lines.forEach(line => {
+              const [key, value] = line.split('=');
+              if (key && value) {
+                env[key.trim()] = value.trim();
+              }
+            });
+          });
+
         // Toggle password visibility
         document.getElementById('togglePassword').addEventListener('click', function() {
             const passwordInput = document.getElementById('adminPassword');

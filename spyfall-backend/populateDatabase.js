@@ -1,7 +1,10 @@
 const mongoose = require('mongoose');
 const Ad = require('./models/Ad');
+require('dotenv').config();
 
-mongoose.connect('mongodb+srv://gamingtycoon25:ojNKo63pHY3FyVCD@spyfall.7qbq9pk.mongodb.net/?retryWrites=true&w=majority&appName=Spyfall', {
+const DB_HOST = process.env.DB_HOST;
+
+mongoose.connect(DB_HOST, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })

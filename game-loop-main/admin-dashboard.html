@@ -432,7 +432,21 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        const socket = io.connect('http://localhost:5000');
+        // Load environment variables
+        const env = {};
+        fetch('/.env')
+          .then(response => response.text())
+          .then(data => {
+            const lines = data.split('\n');
+            lines.forEach(line => {
+              const [key, value] = line.split('=');
+              if (key && value) {
+                env[key.trim()] = value.trim();
+              }
+            });
+          });
+
+        const socket = io.connect(env.BACKEND_URL);
 
         // Logout function
         function logout() {
@@ -494,7 +508,7 @@
         // Dashboard stats loading
         function loadDashboardStats() {
             // Load questions count
-            fetch('/api/admin/questions')
+            fetch(`${env.BACKEND_URL}/api/admin/questions`)
                 .then(response => response.json())
                 .then(questions => {
                     document.getElementById('totalQuestions').textContent = questions.length;
@@ -504,7 +518,7 @@
                 });
 
             // Load ads count
-            fetch('/api/admin/ads')
+            fetch(`${env.BACKEND_URL}/api/admin/ads`)
                 .then(response => response.json())
                 .then(ads => {
                     const activeAds = ads.filter(ad => ad.status === 'active');
@@ -515,7 +529,7 @@
                 });
 
             // Load active games count
-            fetch('/api/game')
+            fetch(`${env.BACKEND_URL}/api/game`)
                 .then(response => response.json())
                 .then(games => {
                     const activeGames = games.filter(game => !game.gameEnded);
@@ -594,7 +608,7 @@
                 createdAt: Date.now()
             };
 
-            fetch('/api/admin/questions', {
+            fetch(`${env.BACKEND_URL}/api/admin/questions`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -618,7 +632,7 @@
         }
 
         function loadQuestions() {
-            fetch('/api/admin/questions')
+            fetch(`${env.BACKEND_URL}/api/admin/questions`)
                 .then(response => response.json())
                 .then(questions => {
                     const tbody = document.getElementById('questionsTableBody');
@@ -705,7 +719,7 @@
                 updatedAt: Date.now()
             };
 
-            fetch(`/api/admin/questions/${id}`, {
+            fetch(`${env.BACKEND_URL}/api/admin/questions/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -729,7 +743,7 @@
 
         function deleteQuestion(id) {
             if (confirm('Are you sure you want to delete this question?')) {
-                fetch(`/api/admin/questions/${id}`, {
+                fetch(`${env.BACKEND_URL}/api/admin/questions/${id}`, {
                     method: 'DELETE'
                 })
                 .then(response => response.json())
@@ -827,7 +841,7 @@
                 createdAt: Date.now()
             };
 
-            fetch('/api/admin/ads', {
+            fetch(`${env.BACKEND_URL}/api/admin/ads`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -851,7 +865,7 @@
         }
 
         function loadAds() {
-            fetch('/api/admin/ads')
+            fetch(`${env.BACKEND_URL}/api/admin/ads`)
                 .then(response => response.json())
                 .then(ads => {
                     const tbody = document.getElementById('adsTableBody');
@@ -964,7 +978,7 @@
                 updatedAt: Date.now()
             };
 
-            fetch(`/api/admin/ads/${id}`, {
+            fetch(`${env.BACKEND_URL}/api/admin/ads/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -989,7 +1003,7 @@
 
         function deleteAd(id) {
             if (confirm('Are you sure you want to delete this advertisement?')) {
-                fetch(`/api/admin/ads/${id}`, {
+                fetch(`${env.BACKEND_URL}/api/admin/ads/${id}`, {
                     method: 'DELETE'
                 })
                 .then(response => response.json())
@@ -1010,7 +1024,7 @@
 
         // Games Management
         function loadGames() {
-            fetch('/api/game')
+            fetch(`${env.BACKEND_URL}/api/game`)
                 .then(response => response.json())
                 .then(games => {
                     const tbody = document.getElementById('gamesTableBody');
@@ -1045,7 +1059,7 @@
 
         function deleteGame(id) {
             if (confirm('Are you sure you want to delete this game?')) {
-                fetch(`/api/game/${id}`, {
+                fetch(`${env.BACKEND_URL}/api/game/${id}`, {
                     method: 'DELETE'
                 })
                 .then(response => response.json())
@@ -1079,7 +1093,7 @@
                 updatedAt: Date.now()
             };
 
-            fetch('/api/admin/settings', {
+            fetch(`${env.BACKEND_URL}/api/admin/settings`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1101,9 +1115,9 @@
 
         function exportData() {
             Promise.all([
-                fetch('/api/admin/questions'),
-                fetch('/api/admin/ads'),
-                fetch('/api/game')
+                fetch(`${env.BACKEND_URL}/api/admin/questions`),
+                fetch(`${env.BACKEND_URL}/api/admin/ads`),
+                fetch(`${env.BACKEND_URL}/api/game`)
             ])
             .then(responses => Promise.all(responses.map(response => response.json())))
             .then(([questions, ads, games]) => {
@@ -1135,7 +1149,7 @@
             const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
             if (!confirm(`Delete all games ended more than ${days} days ago? This cannot be undone!`)) return;
 
-            fetch('/api/game')
+            fetch(`${env.BACKEND_URL}/api/game`)
                 .then(response => response.json())
                 .then(games => {
                     const toDelete = [];
@@ -1152,7 +1166,7 @@
 
                     let deleted = 0;
                     toDelete.forEach(id => {
-                        fetch(`/api/game/${id}`, {
+                        fetch(`${env.BACKEND_URL}/api/game/${id}`, {
                             method: 'DELETE'
                         })
                         .then(response => response.json())

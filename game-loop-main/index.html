@@ -10,6 +10,21 @@
     <link href="custom/custom.css" rel="stylesheet" type="text/css">
     <script src="custom/lang.js"></script>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+      // Load environment variables
+      const env = {};
+      fetch('/.env')
+        .then(response => response.text())
+        .then(data => {
+          const lines = data.split('\n');
+          lines.forEach(line => {
+            const [key, value] = line.split('=');
+            if (key && value) {
+              env[key.trim()] = value.trim();
+            }
+          });
+        });
+    </script>
 </head>
 
 <body>
@@ -154,7 +169,7 @@
                     placeholder="">
                 <button id="clearNameBtn" class="btn btn-sm btn-outline-secondary mt-2 d-none"></button>
             </div>
-            <!--             
+            <!--
             <div class="instructions">
                 <h3>How to Play</h3>
                 <p>
@@ -212,7 +227,7 @@
         });
 
         // Real-time backend configuration
-        const socket = io.connect('http://localhost:5000');
+        const socket = io.connect(env.BACKEND_URL);
 
         // Ad system
         let currentAds = [];
@@ -220,7 +235,7 @@
 
 
         function loadAdsFromBackend() {
-          fetch('/api/admin/ads')
+          fetch(`${env.BACKEND_URL}/api/admin/ads`)
             .then(response => response.json())
             .then(ads => {
               currentAds = ads.filter(ad => ad.status === 'active');
@@ -321,7 +336,7 @@
             const gameCode = generateGameCode();
             localStorage.setItem('gameCode', gameCode);
 
-            fetch('/api/game/create', {
+            fetch(`${env.BACKEND_URL}/api/game/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -397,7 +412,7 @@
 
             localStorage.setItem('gameCode', code);
 
-            fetch('/api/game/join', {
+            fetch(`${env.BACKEND_URL}/api/game/join`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
