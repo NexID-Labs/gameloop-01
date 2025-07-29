@@ -11,9 +11,15 @@ router.post('/questions', async (req, res) => {
   try {
     const newQuestion = new Question({ question, options });
     await newQuestion.save();
-    res.status(201).json(newQuestion);
+    console.log('New question added:', newQuestion);
+
+    res.status(201).json({
+      success: true,
+      message: 'Question added successfully',
+      data: newQuestion,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Something went wrong' });
+    res.status(500).json({ success: false, message: 'Something went wrong' });
   }
 });
 

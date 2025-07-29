@@ -4,7 +4,7 @@ const realTimeService = require('../realTimeService');
 
 const router = express.Router();
 
-// Create a new game
+// Create a new game (worked)
 router.post('/create', async (req, res) => {
   const { code } = req.body;
 
@@ -23,10 +23,11 @@ router.post('/create', async (req, res) => {
   }
 });
 
-// Join a game
+// Join a game  (worked)
 router.post('/join', async (req, res) => {
   const { code } = req.body;
 
+  console.log('Join game request for code:', code);
   try {
     const game = await Game.findOne({ code });
     if (!game) {
@@ -47,12 +48,14 @@ router.post('/join', async (req, res) => {
   }
 });
 
-// Get game details
+// Get game details (worked)
 router.get('/:code', async (req, res) => {
   const { code } = req.params;
 
   try {
     const game = await Game.findOne({ code });
+    console.log('Game details:', game);
+
     if (!game) {
       return res.status(404).json({ message: 'Game not found' });
     }
@@ -63,7 +66,7 @@ router.get('/:code', async (req, res) => {
   }
 });
 
-// Update game question limit
+// Update game question limit (not reached yet)
 router.put('/:code/questionLimit', async (req, res) => {
   const { code } = req.params;
   const { questionLimit } = req.body;
@@ -83,7 +86,7 @@ router.put('/:code/questionLimit', async (req, res) => {
   }
 });
 
-// Update game question count
+// Update game question count (not reached )
 router.put('/:code/questionCount', async (req, res) => {
   const { code } = req.params;
   const { questionCount } = req.body;
@@ -103,7 +106,7 @@ router.put('/:code/questionCount', async (req, res) => {
   }
 });
 
-// Start a game
+// Start a game (not reached )
 router.post('/:code/start', async (req, res) => {
   const { code } = req.params;
   const { startTime, duration } = req.body;

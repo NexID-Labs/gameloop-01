@@ -11,17 +11,23 @@ require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.BACKEND_URL || 5000;
-const FRONTEND_URL = process.env.FRONTEND_URL || 8000;
+const PORT = process.env.PORT || 5000;
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://localhost:8000";
 const DB_HOST = process.env.DB_HOST;
 
 // Middleware
 app.use(bodyParser.json());
+// app.use(cors({
+//   origin: FRONTEND_URL,
+//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+//   credentials: true,
+// }));
+
 app.use(cors({
-  origin: FRONTEND_URL,
+  origin: "*", 
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true,
 }));
+
 
 // Routes
 app.use('/api/game', gameRoutes);
@@ -38,10 +44,13 @@ mongoose.connect(DB_HOST, {
 // Initialize real-time service
 const io = socketIo(server, {
   cors: {
-    origin: FRONTEND_URL,
-    methods: ['GET', 'POST'],
-    credentials: true,
+    origin: "*", // your frontend port
+    methods: ["GET", "POST"],
   },
+});
+
+io.on("connection", (socket) => {
+  console.log("✅ Client connected:", socket.id);
 });
 
 realTimeService.initialize(io);

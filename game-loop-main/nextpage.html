@@ -149,23 +149,29 @@ const backgrounds=[ "gallary/picture/1.PNG",
 
   <script>
     // Load environment variables
-    const env = {};
-    fetch('/.env')
-      .then(response => response.text())
-      .then(data => {
-        const lines = data.split('\n');
-        lines.forEach(line => {
-          const [key, value] = line.split('=');
-          if (key && value) {
-            env[key.trim()] = value.trim();
-          }
-        });
-      });
+    // const env = {};
+    // fetch('/.env')
+    //   .then(response => response.text())
+    //   .then(data => {
+    //     const lines = data.split('\n');
+    //     lines.forEach(line => {
+    //       const [key, value] = line.split('=');
+    //       if (key && value) {
+    //         env[key.trim()] = value.trim();
+    //       }
+    //     });
+    //   });
 
-    const socket = io.connect(env.BACKEND_URL);
+    // const socket = io.connect(env.BACKEND_URL);
+    const BACKEND_URL = "http://localhost:5000";
+
+    const socket = io(BACKEND_URL, {
+    transports: ["websocket", "polling"]
+  });
 
     const urlParams = new URLSearchParams(window.location.search);
     const accessCode = urlParams.get('code') || 'N/A';
+    console.log('Access Code:', accessCode);
     document.getElementById('accessCode').textContent = accessCode;
 
     const playersContainer = document.getElementById('playersContainer');
@@ -179,7 +185,7 @@ const backgrounds=[ "gallary/picture/1.PNG",
     let currentAdIndex = 0;
 
     function loadAdsFromBackend() {
-      fetch(`${env.BACKEND_URL}/api/admin/ads`)
+      fetch(`http://localhost:5000/api/admin/ads`)
         .then(response => response.json())
         .then(ads => {
           currentAds = ads.filter(ad => ad.status === 'active');
@@ -238,6 +244,7 @@ const backgrounds=[ "gallary/picture/1.PNG",
 
     // Listen for game data
     socket.on('gameData', (game) => {
+      console.log('Game data received:', game); 
       if (!game) {
         alert("Game not found.");
         window.location.href = "index.html";
@@ -263,7 +270,7 @@ const backgrounds=[ "gallary/picture/1.PNG",
       savedPlayerName = name;
 
       // Fetch game data from the backend
-      fetch(`${env.BACKEND_URL}/api/game/${accessCode}`)
+      fetch(`http://localhost:5000/api/game/${accessCode}`)
         .then(response => response.json())
         .then(game => {
           if (game.host) {
@@ -333,7 +340,7 @@ const backgrounds=[ "gallary/picture/1.PNG",
         questionLimitDisplay.textContent = `Questions: ${selectedLimit}`;
 
         // Update question limit in the backend
-        fetch(`${env.BACKEND_URL}/api/game/${accessCode}/questionLimit`, {
+        fetch(`http://localhost:5000/api/game/${accessCode}/questionLimit`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'

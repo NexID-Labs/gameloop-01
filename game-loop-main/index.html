@@ -227,7 +227,10 @@
         });
 
         // Real-time backend configuration
-        const socket = io.connect(env.BACKEND_URL);
+        // const socket = io.connect(env.BACKEND_URL);
+         const socket = io("http://localhost:5000", {
+    transports: ["websocket", "polling"]
+  });
 
         // Ad system
         let currentAds = [];
@@ -235,7 +238,7 @@
 
 
         function loadAdsFromBackend() {
-          fetch(`${env.BACKEND_URL}/api/admin/ads`)
+          fetch(`http://localhost:5000/api/admin/ads`)
             .then(response => response.json())
             .then(ads => {
               currentAds = ads.filter(ad => ad.status === 'active');
@@ -331,12 +334,12 @@
                 alert("Please enter your name.");
                 return;
             }
-            localStorage.setItem('hostNameFor_', 'host')
+            localStorage.setItem('hostNameFor_', name)
             localStorage.setItem('playerName', name);
             const gameCode = generateGameCode();
             localStorage.setItem('gameCode', gameCode);
 
-            fetch(`${env.BACKEND_URL}/api/game/create`, {
+            fetch(`http://localhost:5000/api/game/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -347,6 +350,7 @@
             .then(data => {
                 if (data.message) {
                     alert(data.message);
+                    console.log("data => " , data)
                 } else {
                     localStorage.setItem('gameId', data._id);
                     window.location.href = `nextpage.html?code=${gameCode}`;
@@ -412,7 +416,7 @@
 
             localStorage.setItem('gameCode', code);
 
-            fetch(`${env.BACKEND_URL}/api/game/join`, {
+            fetch(`http://localhost:5000/api/game/join`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
