@@ -26,6 +26,7 @@
       margin-left: 5px;
     }
 
+  
     #copyBtn {
       cursor: pointer;
       margin-left: 5px;
@@ -143,37 +144,29 @@ const backgrounds=[ "gallary/picture/1.PNG",
     <p id="statusText" class="text-secondary mt-1">0/0 اللاعبين جاهزين</p>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.0.0/dist/socket.io.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
     crossorigin="anonymous"></script>
 
   <script>
-    // Load environment variables
-    // const env = {};
-    // fetch('/.env')
-    //   .then(response => response.text())
-    //   .then(data => {
-    //     const lines = data.split('\n');
-    //     lines.forEach(line => {
-    //       const [key, value] = line.split('=');
-    //       if (key && value) {
-    //         env[key.trim()] = value.trim();
-    //       }
-    //     });
-    //   });
-
-    // const socket = io.connect(env.BACKEND_URL);
-    const BACKEND_URL = "http://localhost:5000";
-
-    const socket = io(BACKEND_URL, {
-    transports: ["websocket", "polling"]
-  });
+    const firebaseConfig = {
+      apiKey: "AIzaSyAFOenFl1wULnf2_Kh1Dyx4lGjPATJiV_s",
+      authDomain: "simple-game-709c6.firebaseapp.com",
+      databaseURL: "https://simple-game-709c6-default-rtdb.firebaseio.com",
+      projectId: "simple-game-709c6",
+      storageBucket: "simple-game-709c6.appspot.com",
+      messagingSenderId: "87856525192",
+      appId: "1:87856525192:web:804023d0198f011ec2143d"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
     const urlParams = new URLSearchParams(window.location.search);
     const accessCode = urlParams.get('code') || 'N/A';
-    console.log('Access Code:', accessCode);
     document.getElementById('accessCode').textContent = accessCode;
 
+    const gameRef = database.ref('games/' + accessCode);
     const playersContainer = document.getElementById('playersContainer');
     const statusText = document.getElementById('statusText');
     const startGameBtn = document.getElementById('startGameBtn');
@@ -184,32 +177,22 @@ const backgrounds=[ "gallary/picture/1.PNG",
     let currentAds = [];
     let currentAdIndex = 0;
 
-    function loadAdsFromBackend() {
-      fetch(`http://localhost:5000/api/admin/ads`)
-        .then(response => response.json())
-        .then(ads => {
-          currentAds = ads.filter(ad => ad.status === 'active');
-          console.log('Loaded active ads from backend:', currentAds.length);
+    function loadAdsFromFirebase() {
+      database.ref('admin/ads').on('value', snapshot => {
+        const adsData = snapshot.val() || {};
+        currentAds = Object.values(adsData).filter(ad => ad.status === 'active');
+        console.log('Loaded active ads from Firebase (real-time):', currentAds.length);
 
-          if (currentAds.length === 0) {
-            currentAds = [{
-              title: "Default Ad",
-              content: "🎮 Your Ad Here - Premium Gaming Experience",
-              url: ""
-            }];
-          }
-
-          initializeAdRotation();
-        })
-        .catch(error => {
-          console.error('Error loading ads:', error);
+        if (currentAds.length === 0) {
           currentAds = [{
             title: "Default Ad",
             content: "🎮 Your Ad Here - Premium Gaming Experience",
             url: ""
           }];
-          initializeAdRotation();
-        });
+        }
+
+        initializeAdRotation();
+      });
     }
 
     function initializeAdRotation() {
@@ -233,88 +216,138 @@ const backgrounds=[ "gallary/picture/1.PNG",
       }
     }
 
-    loadAdsFromBackend();
+    loadAdsFromFirebase();
 
     let allPlayers = {};
     let hostName = null;
     let savedPlayerName = null;
 
-    // Join the game room
-    socket.emit('joinGame', accessCode);
+    gameRef.once('value')
+      .then(snapshot => {
+        if (!snapshot.exists()) {
+          alert("Game not found.");
+          window.location.href = "index.html";
+          return;
+        }
 
-    // Listen for game data
-    socket.on('gameData', (game) => {
-      console.log('Game data received:', game); 
-      if (!game) {
-        alert("Game not found.");
+        const players = snapshot.val().players || {};
+        savedPlayerName = localStorage.getItem('playerName');
+
+        if (savedPlayerName) {
+          if (players[savedPlayerName]) {
+            initializeLobby(savedPlayerName);
+          } else {
+            tryAddPlayer(savedPlayerName, players);
+          }
+        } else {
+          askForName(players);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Error accessing game.");
+        window.location.href = "index.html";
+      });
+
+    function tryAddPlayer(name, players) {
+      if (Object.keys(players).length >= 4) {
+        alert("This game already has 4 players.");
         window.location.href = "index.html";
         return;
       }
 
-      savedPlayerName = localStorage.getItem('playerName');
-      initializeLobby(savedPlayerName);
-    });
+      if (players[name]) {
+        initializeLobby(name);
+      } else {
+        database.ref('games/' + accessCode + '/players/' + name).set(true)
+          .then(() => {
+            localStorage.setItem('playerName', name);
+            initializeLobby(name);
+          }).catch(err => {
+            console.error(err);
+            alert("Failed to join game.");
+            window.location.href = "index.html";
+          });
+      }
+    }
 
-    // Listen for game not found
-    socket.on('gameNotFound', (data) => {
-      alert(data.message);
-      window.location.href = "index.html";
-    });
+    function askForName(players) {
+      const enteredName = prompt("Enter your player name:");
+      if (!enteredName || enteredName.trim() === "") {
+        alert("Name cannot be empty.");
+        window.location.href = "index.html";
+        return;
+      }
 
-    // Listen for player joined
-    socket.on('playerJoined', (data) => {
-      console.log('Player joined:', data.playerId);
-    });
+      const trimmedName = enteredName.trim();
+
+      if (players[trimmedName]) {
+        // Ask for a new name instead of redirecting
+        const newName = prompt(`The name "${trimmedName}" is already taken in this game. Please enter a different name:`);
+        if (!newName || newName.trim() === "") {
+          alert("Name is required to join the game.");
+          window.location.href = "index.html";
+          return;
+        }
+
+        const finalName = newName.trim();
+        if (players[finalName]) {
+          alert("This name is also taken. Please try again with a different name.");
+          window.location.href = "index.html";
+          return;
+        }
+
+        // Use the new name
+        trimmedName = finalName;
+      }
+
+      if (Object.keys(players).length >= 4) {
+        alert("This game already has 4 players.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      database.ref('games/' + accessCode + '/players/' + trimmedName).set(true)
+        .then(() => {
+          localStorage.setItem('playerName', trimmedName);
+          initializeLobby(trimmedName);
+        }).catch(err => {
+          console.error(err);
+          alert("Failed to join game.");
+          window.location.href = "index.html";
+        });
+    }
 
     function initializeLobby(name) {
       savedPlayerName = name;
+      gameRef.child('players').once('value').then(snapshot => {
+        const players = snapshot.val() || {};
+        hostName = Object.keys(players)[0] || savedPlayerName;
 
-      // Fetch game data from the backend
-      fetch(`http://localhost:5000/api/game/${accessCode}`)
-        .then(response => response.json())
-        .then(game => {
-          if (game.host) {
-            hostName = game.host;
-          }
+        if (localStorage.getItem('hostNameFor_') === "host") {
+          document.getElementById('hostSettingsHR').style.display = 'block';
+          document.getElementById('hostSettingsLabel').style.display = 'block';
+          questionLimitSelect.style.display = 'block';
+          startGameBtn.style.display = 'inline-block';
 
-          if (localStorage.getItem('hostNameFor_') === "host") {
-            document.getElementById('hostSettingsHR').style.display = 'block';
-            document.getElementById('hostSettingsLabel').style.display = 'block';
-            questionLimitSelect.style.display = 'block';
-            startGameBtn.style.display = 'inline-block';
-
-            // Set initial question limit
-            questionLimitSelect.value = game.questionLimit || 20;
-            questionLimitDisplay.textContent = `Questions: ${questionLimitSelect.value}`;
-          }
-
-          // Update players list
-          allPlayers = game.players || [];
-          renderPlayers();
-
-          // Listen for real-time updates
-          socket.on('gameUpdated', (updatedGame) => {
-            allPlayers = updatedGame.players || [];
-            renderPlayers();
-
-            const readyCount = Object.keys(updatedGame.playersReady || {}).length;
-            const totalCount = allPlayers.length;
-            statusText.innerText = `${readyCount}/${totalCount} players ready`;
-
-            if (localStorage.getItem('hostNameFor_') === "host") {
-              startGameBtn.disabled = totalCount < 2;
-            }
+          gameRef.child('questionLimit').once('value').then(limitSnap => {
+            const limit = limitSnap.exists() ? limitSnap.val() : 20;
+            questionLimitSelect.value = limit;
+            gameRef.update({ questionLimit: parseInt(limit) });
           });
-        })
-        .catch(error => {
-          console.error('Error fetching game data:', error);
-          alert("Error accessing game.");
-          window.location.href = "index.html";
-        });
+
+          questionLimitSelect.addEventListener('change', () => {
+            const selectedLimit = parseInt(questionLimitSelect.value);
+            gameRef.update({ questionLimit: selectedLimit });
+          });
+        }
+      });
+
+      let readyPlayers = {};
 
       function renderPlayers() {
         playersContainer.innerHTML = "";
-        const playerNames = allPlayers;
+        const playerNames = Object.keys(allPlayers);
         const orderedPlayers = [];
 
         if (playerNames.includes(savedPlayerName)) orderedPlayers.push(savedPlayerName);
@@ -331,35 +364,54 @@ const backgrounds=[ "gallary/picture/1.PNG",
             playerBox.innerHTML += ' <span class="crown">👑</span>';
           }
 
+          if (readyPlayers[player]) {
+            playerBox.classList.add('ready');
+            playerBox.innerHTML += ' ✅';
+          }
+
           playersContainer.appendChild(playerBox);
         });
       }
 
-      questionLimitSelect.addEventListener('change', () => {
-        const selectedLimit = parseInt(questionLimitSelect.value);
-        questionLimitDisplay.textContent = `Questions: ${selectedLimit}`;
-
-        // Update question limit in the backend
-        fetch(`http://localhost:5000/api/game/${accessCode}/questionLimit`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ questionLimit: selectedLimit })
-        })
-        .catch(error => {
-          console.error('Error updating question limit:', error);
-        });
+      gameRef.child('players').on('value', (snapshot) => {
+        allPlayers = snapshot.val() || {};
+        renderPlayers();
       });
 
-      socket.on('gameStarted', () => {
-        window.location.href = `finalpage.html?code=${accessCode}`;
+      gameRef.child('playersReady').on('value', (snapshot) => {
+        readyPlayers = snapshot.val() || {};
+        renderPlayers();
+
+        const readyCount = Object.keys(readyPlayers).length;
+        const totalCount = Object.keys(allPlayers).length;
+        statusText.innerText = `${readyCount}/${totalCount} players ready`;
+
+        if (localStorage.getItem('hostNameFor_') === "host") {
+          startGameBtn.disabled = totalCount < 2;
+        }
       });
+
+      gameRef.child('questionLimit').on('value', (snapshot) => {
+        const limit = snapshot.exists() ? snapshot.val() : 20;
+        questionLimitDisplay.textContent = `Questions: ${limit}`;
+      });
+
+      gameRef.child('gameStarted').on('value', (snapshot) => {
+        if (snapshot.val() === true) {
+          window.location.href = `finalpage.html?code=${accessCode}`;
+        }
+      });
+
+      gameRef.child('playersReady').child(savedPlayerName).set(true);
     }
 
     startGameBtn.addEventListener('click', () => {
-      // Start the game
-      socket.emit('startGame', accessCode);
+      const totalCount = Object.keys(allPlayers).length;
+      if (totalCount >= 2) {
+        gameRef.update({ gameStarted: true }).then(() => {
+          window.location.href = `finalpage.html?code=${accessCode}`;
+        });
+      }
     });
 
     document.getElementById('copyBtn').addEventListener('click', () => {
