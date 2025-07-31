@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Questions Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h3 {
+            color: white;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .sidebar-menu li {
+            margin: 5px 0;
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 15px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-radius: 0 25px 25px 0;
+            margin-right: 20px;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .count-display {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .table td {
+            border: none;
+            vertical-align: middle;
+        }
+
+        .action-btn {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            margin: 0 2px;
+            font-size: 0.9rem;
+        }
+
+        .btn-edit {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .form-group input[type="file"] {
+            padding: 5px;
+        }
+
+        .status-toggle {
+            width: 50px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .image-preview {
+            margin-top: 10px;
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .image-preview-container {
+            margin-top: 10px;
+        }
+
+        .image-preview-container img {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .image-preview-container .placeholder {
+            width: 200px;
+            height: 150px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Questions Section -->
+        <div id="questions" class="content-section active">
+            <div class="dashboard-card">
+                <h2 class="section-title"><i class="fas fa-question-circle"></i> Regular Questions</h2>
+                <div class="count-display">
+                    Total Questions: <span id="questionCount">0</span>
+                </div>
+                <div class="language-buttons mb-3">
+                    <button class="btn btn-outline-primary" onclick="filterQuestions('en')">
+                        English: <span id="englishQuestionCount">0</span>
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="filterQuestions('ar')">
+                        Arabic: <span id="arabicQuestionCount">0</span>
+                    </button>
+                </div>
+                <button class="btn btn-primary-custom" onclick="openAddQuestionModal()">
+                    <i class="fas fa-plus"></i> Add New Question
+                </button>
+                <button class="btn btn-secondary" onclick="loadQuestions()">
+                    Show All
+                </button>
+
+                <div class="table-container">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Question</th>
+                                <th>Language</th>
+                                <th>Options</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="questionsTableBody">
+                            <!-- Questions will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ads Section -->
+        <div id="ads" class="content-section">
+            <div class="dashboard-card">
+                <h2 class="section-title"><i class="fas fa-ad"></i> Advertisement Questions</h2>
+                <div class="count-display">
+                    Total Ad Questions: <span id="adQuestionCount">0</span>
+                </div>
+                <div class="language-buttons mb-3">
+                    <button class="btn btn-outline-primary" onclick="filterAdQuestions('en')">
+                        English: <span id="englishAdQuestionCount">0</span>
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="filterAdQuestions('ar')">
+                        Arabic: <span id="arabicAdQuestionCount">0</span>
+                    </button>
+                </div>
+                <button class="btn btn-primary-custom" onclick="openAddAdQuestionModal()">
+                    <i class="fas fa-plus"></i> Add New Ad Question
+                </button>
+                <button class="btn btn-secondary" onclick="loadAdQuestions()">
+                    Show All
+                </button>
+
+                <div class="table-container">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                    <th>ID</th>
+                    <th>Question</th>
+                    <th>Language</th>
+                    <th>Options</th>
+                    <th>URL</th>
+                    <th>Image</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adQuestionsTableBody">
+                            <!-- Ad questions will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Question Modal -->
+    <div id="addQuestionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Question</h3>
+                <button class="close-btn" onclick="closeAddQuestionModal()">&times;</button>
+            </div>
+            <form id="addQuestionForm">
+                <div class="form-group">
+                    <label for="questionText">Question Text</label>
+                    <input type="text" id="questionText" required>
+                </div>
+                <div class="form-group">
+                    <label for="questionLanguage">Language</label>
+                    <select id="questionLanguage" required>
+                        <option value="en">English</option>
+                        <option value="ar">Arabic</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="option1">Option 1</label>
+                    <input type="text" id="option1" required>
+                </div>
+                <div class="form-group">
+                    <label for="option2">Option 2</label>
+                    <input type="text" id="option2" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddQuestionModal()">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="addQuestion()">Add Question</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Question Modal -->
+    <div id="editQuestionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Question</h3>
+                <button class="close-btn" onclick="closeEditQuestionModal()">&times;</button>
+            </div>
+            <form id="editQuestionForm">
+                <input type="hidden" id="editQuestionId">
+                <div class="form-group">
+                    <label for="editQuestionText">Question Text</label>
+                    <input type="text" id="editQuestionText" required>
+                </div>
+                <div class="form-group">
+                    <label for="editQuestionLanguage">Language</label>
+                    <select id="editQuestionLanguage" required>
+                        <option value="en">English</option>
+                        <option value="ar">Arabic</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editOption1">Option 1</label>
+                    <input type="text" id="editOption1" required>
+                </div>
+                <div class="form-group">
+                    <label for="editOption2">Option 2</label>
+                    <input type="text" id="editOption2" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditQuestionModal()">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="updateQuestion()">Update Question</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Ad Question Modal -->
+    <div id="addAdQuestionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Ad Question</h3>
+                <button class="close-btn" onclick="closeAddAdQuestionModal()">&times;</button>
+            </div>
+            <form id="addAdQuestionForm">
+                <div class="form-group">
+                    <label for="adQuestionText">Question Text</label>
+                    <input type="text" id="adQuestionText" required>
+                </div>
+                <div class="form-group">
+                    <label for="adQuestionLanguage">Language</label>
+                    <select id="adQuestionLanguage" required>
+                        <option value="en">English</option>
+                        <option value="ar">Arabic</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="adOption1">Option 1</label>
+                    <input type="text" id="adOption1" required>
+                </div>
+                <div class="form-group">
+                    <label for="adOption2">Option 2</label>
+                    <input type="text" id="adOption2" required>
+                </div>
+                <div class="form-group">
+                    <label for="adUrl">URL</label>
+                    <input type="url" id="adUrl">
+                </div>
+                <div class="form-group">
+                    <label for="adImage">Image</label>
+                    <input type="file" id="adImage" accept="image/*" onchange="previewAdImage()">
+                    <div class="image-preview-container">
+                        <div class="placeholder">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <img id="adImagePreview" class="image-preview" style="display: none;" alt="Image Preview">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="adStatus">Status</label>
+                    <select id="adStatus">
+                        <option value="active">Active</option>
+                        <option value="disabled">Disabled</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddAdQuestionModal()">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="addAdQuestion()">Add Ad Question</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Ad Question Modal -->
+    <div id="editAdQuestionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Ad Question</h3>
+                <button class="close-btn" onclick="closeEditAdQuestionModal()">&times;</button>
+            </div>
+            <form id="editAdQuestionForm">
+                <input type="hidden" id="editAdQuestionId">
+                <div class="form-group">
+                    <label for="editAdQuestionText">Question Text</label>
+                    <input type="text" id="editAdQuestionText" required>
+                </div>
+                <div class="form-group">
+                    <label for="editAdQuestionLanguage">Language</label>
+                    <select id="editAdQuestionLanguage" required>
+                        <option value="en">English</option>
+                        <option value="ar">Arabic</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editAdOption1">Option 1</label>
+                    <input type="text" id="editAdOption1" required>
+                </div>
+                <div class="form-group">
+                    <label for="editAdOption2">Option 2</label>
+                    <input type="text" id="editAdOption2" required>
+                </div>
+                <div class="form-group">
+                    <label for="editAdUrl">URL</label>
+                    <input type="url" id="editAdUrl">
+                </div>
+                <div class="form-group">
+                    <label for="editAdImage">Image</label>
+                    <input type="file" id="editAdImage" accept="image/*" onchange="previewEditAdImage()">
+                    <div class="image-preview-container">
+                        <div class="placeholder">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <img id="editAdImagePreview" class="image-preview" style="display: none;" alt="Image Preview">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editAdStatus">Status</label>
+                    <select id="editAdStatus">
+                        <option value="active">Active</option>
+                        <option value="disabled">Disabled</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditAdQuestionModal()">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="updateAdQuestion()">Update Ad Question</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize data
+        let questions = [];
+        let adQuestions = [];
+
+        // DOM Content Loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial data
+            loadQuestions();
+            loadAdQuestions();
+            updateLanguageCounts();
+        });
+
+        function updateLanguageCounts() {
+            // Update question language counts
+            const englishQuestionCount = questions.filter(q => q.language === 'en').length;
+            const arabicQuestionCount = questions.filter(q => q.language === 'ar').length;
+            document.getElementById('englishQuestionCount').textContent = englishQuestionCount;
+            document.getElementById('arabicQuestionCount').textContent = arabicQuestionCount;
+
+            // Update ad question language counts
+            const englishAdQuestionCount = adQuestions.filter(ad => ad.language === 'en').length;
+            const arabicAdQuestionCount = adQuestions.filter(ad => ad.language === 'ar').length;
+            document.getElementById('englishAdQuestionCount').textContent = englishAdQuestionCount;
+            document.getElementById('arabicAdQuestionCount').textContent = arabicAdQuestionCount;
+        }
+
+        function filterQuestions(language) {
+            const tbody = document.getElementById('questionsTableBody');
+            tbody.innerHTML = '';
+
+            const filteredQuestions = questions.filter(q => q.language === language);
+            filteredQuestions.forEach((question, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${question.text}</td>
+                    <td>${question.language}</td>
+                    <td>${question.options.join(' / ')}</td>
+                    <td>
+                        <button class="action-btn btn-edit" onclick="openEditQuestionModal('${question._id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn btn-delete" onclick="deleteQuestion('${question._id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Update counts
+            const englishCount = questions.filter(q => q.language === 'en').length;
+            const arabicCount = questions.filter(q => q.language === 'ar').length;
+            document.getElementById('englishQuestionCount').textContent = englishCount;
+            document.getElementById('arabicQuestionCount').textContent = arabicCount;
+            document.getElementById('questionCount').textContent = questions.length;
+        }
+
+        function filterAdQuestions(language) {
+            const tbody = document.getElementById('adQuestionsTableBody');
+            tbody.innerHTML = '';
+
+            const filteredAds = adQuestions.filter(ad => ad.language === language);
+            filteredAds.forEach((ad, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${ad.text}</td>
+                    <td>${ad.language}</td>
+                    <td>${ad.options.join(' / ')}</td>
+                    <td>${ad.url || '-'}</td>
+                    <td>${ad.image ? '<img src="http://localhost:5000' + ad.image + '" alt="Ad Image" style="max-width:60px;max-height:40px;object-fit:cover;">' : '-'}</td>
+                    <td>${ad.status === 'active' ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Disabled</span>'}</td>
+                    <td>
+                        <button class="action-btn btn-edit" onclick="openEditAdQuestionModal('${ad._id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn btn-delete" onclick="deleteAdQuestion('${ad._id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Update counts
+            const englishCount = adQuestions.filter(ad => ad.language === 'en').length;
+            const arabicCount = adQuestions.filter(ad => ad.language === 'ar').length;
+            document.getElementById('englishAdQuestionCount').textContent = englishCount;
+            document.getElementById('arabicAdQuestionCount').textContent = arabicCount;
+            document.getElementById('adQuestionCount').textContent = adQuestions.length;
+        }
+
+        // Questions Management
+        async function loadQuestions() {
+            try {
+                const response = await fetch('http://localhost:5000/api/questions');
+                questions = await response.json();
+                const tbody = document.getElementById('questionsTableBody');
+                tbody.innerHTML = '';
+
+                questions.forEach((question, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${question.text}</td>
+                        <td>${question.language}</td>
+                        <td>${question.options.join(' / ')}</td>
+                        <td>
+                            <button class="action-btn btn-edit" onclick="openEditQuestionModal('${question._id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn btn-delete" onclick="deleteQuestion('${question._id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                document.getElementById('questionCount').textContent = questions.length;
+            } catch (error) {
+                console.error('Error loading questions:', error);
+            }
+        }
+
+        function openAddQuestionModal() {
+            document.getElementById('addQuestionModal').classList.add('active');
+        }
+
+        function closeAddQuestionModal() {
+            document.getElementById('addQuestionModal').classList.remove('active');
+            document.getElementById('addQuestionForm').reset();
+        }
+
+        async function addQuestion() {
+            const text = document.getElementById('questionText').value;
+            const language = document.getElementById('questionLanguage').value;
+            const option1 = document.getElementById('option1').value;
+            const option2 = document.getElementById('option2').value;
+
+            if (!text || !language || !option1 || !option2) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/questions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text,
+                        language,
+                        options: [option1, option2],
+                    }),
+                });
+
+                if (response.ok) {
+                    closeAddQuestionModal();
+                    loadQuestions();
+                    updateLanguageCounts();
+                } else {
+                    alert('Failed to add question');
+                }
+            } catch (error) {
+                console.error('Error adding question:', error);
+            }
+        }
+
+        function openEditQuestionModal(id) {
+            const question = questions.find(q => q._id === id);
+            document.getElementById('editQuestionId').value = id;
+            document.getElementById('editQuestionText').value = question.text;
+            document.getElementById('editQuestionLanguage').value = question.language;
+            document.getElementById('editOption1').value = question.options[0];
+            document.getElementById('editOption2').value = question.options[1];
+            document.getElementById('editQuestionModal').classList.add('active');
+        }
+
+        function closeEditQuestionModal() {
+            document.getElementById('editQuestionModal').classList.remove('active');
+        }
+
+        async function updateQuestion() {
+            const id = document.getElementById('editQuestionId').value;
+            const text = document.getElementById('editQuestionText').value;
+            const language = document.getElementById('editQuestionLanguage').value;
+            const option1 = document.getElementById('editOption1').value;
+            const option2 = document.getElementById('editOption2').value;
+
+            if (!text || !language || !option1 || !option2) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5000/api/questions/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text,
+                        language,
+                        options: [option1, option2],
+                    }),
+                });
+
+                if (response.ok) {
+                    closeEditQuestionModal();
+                    loadQuestions();
+                    updateLanguageCounts();
+                } else {
+                    alert('Failed to update question');
+                }
+            } catch (error) {
+                console.error('Error updating question:', error);
+            }
+        }
+
+        async function deleteQuestion(id) {
+            if (confirm('Are you sure you want to delete this question?')) {
+                try {
+                    const response = await fetch(`http://localhost:5000/api/questions/${id}`, {
+                        method: 'DELETE',
+                    });
+
+                if (response.ok) {
+                        loadQuestions();
+                        updateLanguageCounts();
+                    } else {
+                        alert('Failed to delete question');
+                    }
+                } catch (error) {
+                    console.error('Error deleting question:', error);
+                }
+            }
+        }
+
+        // Advertisement Questions Management
+        async function loadAdQuestions() {
+            try {
+                const response = await fetch('http://localhost:5000/api/ad-questions');
+                adQuestions = await response.json();
+                const tbody = document.getElementById('adQuestionsTableBody');
+                tbody.innerHTML = '';
+
+                adQuestions.forEach((ad, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${ad.text}</td>
+                        <td>${ad.language}</td>
+                        <td>${ad.options.join(' / ')}</td>
+                        <td>${ad.url || '-'}</td>
+                    <td>${ad.image ? '<img src="http://localhost:5000' + ad.image + '" alt="Ad Image" style="max-width:60px;max-height:40px;object-fit:cover;">' : '-'}</td>
+                        <td>${ad.status === 'active' ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Disabled</span>'}</td>
+                        <td>
+                            <button class="action-btn btn-edit" onclick="openEditAdQuestionModal('${ad._id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn btn-delete" onclick="deleteAdQuestion('${ad._id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                document.getElementById('adQuestionCount').textContent = adQuestions.length;
+            } catch (error) {
+                console.error('Error loading ad questions:', error);
+            }
+        }
+
+        function openAddAdQuestionModal() {
+            document.getElementById('addAdQuestionModal').classList.add('active');
+            document.getElementById('addAdQuestionForm').reset();
+            document.getElementById('adImagePreview').style.display = 'none';
+            document.querySelector('#addAdQuestionModal .placeholder').style.display = 'flex';
+        }
+
+        function closeAddAdQuestionModal() {
+            document.getElementById('addAdQuestionModal').classList.remove('active');
+        }
+
+        function previewAdImage() {
+            const fileInput = document.getElementById('adImage');
+            const preview = document.getElementById('adImagePreview');
+            const placeholder = document.querySelector('#addAdQuestionModal .placeholder');
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
+
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        }
+
+        async function addAdQuestion() {
+            const text = document.getElementById('adQuestionText').value;
+            const language = document.getElementById('adQuestionLanguage').value;
+            const option1 = document.getElementById('adOption1').value;
+            const option2 = document.getElementById('adOption2').value;
+            const url = document.getElementById('adUrl').value;
+            const imageInput = document.getElementById('adImage');
+            const status = document.getElementById('adStatus').value;
+
+            if (!text || !language || !option1 || !option2) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append('text', text);
+            formData.append('language', language);
+            formData.append('options', JSON.stringify([option1, option2]));
+            formData.append('url', url);
+            formData.append('status', status);
+            if (imageInput.files && imageInput.files[0]) {
+                formData.append('image', imageInput.files[0]);
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/ad-questions', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    closeAddAdQuestionModal();
+                    loadAdQuestions();
+                    updateLanguageCounts();
+                } else {
+                    alert('Failed to add ad question');
+                }
+            } catch (error) {
+                console.error('Error adding ad question:', error);
+            }
+        }
+
+        function openEditAdQuestionModal(id) {
+            const ad = adQuestions.find(ad => ad._id === id);
+            document.getElementById('editAdQuestionId').value = id;
+            document.getElementById('editAdQuestionText').value = ad.text;
+            document.getElementById('editAdOption1').value = ad.options[0];
+            document.getElementById('editAdOption2').value = ad.options[1];
+            document.getElementById('editAdUrl').value = ad.url;
+            document.getElementById('editAdStatus').value = ad.status;
+
+            const preview = document.getElementById('editAdImagePreview');
+            const placeholder = document.querySelector('#editAdQuestionModal .placeholder');
+
+            if (ad.image) {
+                preview.src = ad.image;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+            } else {
+                preview.style.display = 'none';
+                placeholder.style.display = 'flex';
+            }
+
+            document.getElementById('editAdQuestionModal').classList.add('active');
+        }
+
+        function closeEditAdQuestionModal() {
+            document.getElementById('editAdQuestionModal').classList.remove('active');
+        }
+
+        function previewEditAdImage() {
+            const fileInput = document.getElementById('editAdImage');
+            const preview = document.getElementById('editAdImagePreview');
+            const placeholder = document.querySelector('#editAdQuestionModal .placeholder');
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
+
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        }
+
+        async function updateAdQuestion() {
+            const id = document.getElementById('editAdQuestionId').value;
+            const text = document.getElementById('editAdQuestionText').value;
+            const language = document.getElementById('editAdQuestionLanguage').value;
+            const option1 = document.getElementById('editAdOption1').value;
+            const option2 = document.getElementById('editAdOption2').value;
+            const url = document.getElementById('editAdUrl').value;
+            const imageInput = document.getElementById('editAdImage');
+            const status = document.getElementById('editAdStatus').value;
+
+            if (!text || !language || !option1 || !option2) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            let image = adQuestions.find(ad => ad._id === id).image;
+            if (imageInput.files && imageInput.files[0]) {
+                // For demo purposes, we'll use the local file URL
+                // In a real application, you would upload to a server
+                image = URL.createObjectURL(imageInput.files[0]);
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5000/api/ad-questions/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text,
+                        language,
+                        options: [option1, option2],
+                        url,
+                        image,
+                        status,
+                    }),
+                });
+
+                if (response.ok) {
+                    closeEditAdQuestionModal();
+                    loadAdQuestions();
+                } else {
+                    alert('Failed to update ad question');
+                }
+            } catch (error) {
+                console.error('Error updating ad question:', error);
+            }
+        }
+
+        async function deleteAdQuestion(id) {
+            if (confirm('Are you sure you want to delete this ad question?')) {
+                try {
+                    const response = await fetch(`http://localhost:5000/api/ad-questions/${id}`, {
+                        method: 'DELETE',
+                    });
+
+                if (response.ok) {
+                        loadAdQuestions();
+                        updateLanguageCounts();
+                    } else {
+                        alert('Failed to delete ad question');
+                    }
+                } catch (error) {
+                    console.error('Error deleting ad question:', error);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
